@@ -1,0 +1,4 @@
+all: readcommand.c
+	gcc -g -Wall -o readcommand readcommand.c
+clean: 
+	$(RM) readcommand
