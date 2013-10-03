@@ -28,7 +28,7 @@ struct command_t{
 int readCommand(struct command_t *);
 int parseCommand(char *, struct command_t *);
 void printCommand(struct command_t *);
-
+git c
 
 int main(int argc, char *argv[])
 {	
