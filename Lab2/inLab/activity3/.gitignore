@@ -1,0 +1,10 @@
+.simple.ko.cmd
+.simple.mod.o.cmd
+.simple.o.cmd
+.tmp_versions/
+Module.symvers
+modules.order
+simple.ko
+simple.mod.c
+simple.mod.o
+simple.o
