@@ -2,44 +2,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 int lookupPath(char prog []) {
 
-
-
-    /*DIR *d;
-    struct dirent *dir;
-    d = opendir(".")*/
-    return 0;
-}
-
-char **get_paths() {
-    int tokens, i = 0;
-    char * path_array;
-
-    //Use getenv to get the PATH environment variable
     char *path = getenv("PATH");
-    //Find the occurences of ":" which split paths in PATH
-    for (tokens = 0; path[tokens]; path[tokens]==":" ? tokens++: path++);
-
-    path_array = (char *) calloc (tokens, 100*sizeof(char));
-
     char *paths = strtok(path, ":");
+
     while (paths != NULL) {
-        path_array[i] = paths; i++;
-        //printf("%s\n", paths);
+        printf("%s\n", paths);
         paths = strtok(NULL, ":");
     }
 
-    for (i=0; i<tokens; i++) {
-        printf("%s\n", path_array[i]);
+
+}
+
+bool check_file_in_dir(char *path, char *file) {
+    // Some code adapted from: http://stackoverflow.com/questions/4204666/
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(path);
+
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            printf("%s\n", dir->d_name);
+            if (!strcmp(file, dir->d_name)) {
+                return true;
+            }
+        }
+        closedir(d);
     }
-
-    return path_array;
+    return false;
 }
 
-void main() {
-    int a=0;
+
+
+void main(void) {
     lookupPath("ls");
-    get_paths();
+    check_file_in_dir(".", "lookupPath.c");
 }
+
