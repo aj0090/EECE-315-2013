@@ -1,42 +1,64 @@
-/*#include ...*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "minishell.h"
 
-char *lookupPath(char **, char **);
-int parseCommand(char *, struct command_t *);
-int parsePath(char **);
-void printPrompt();
-void readCommand(char *);
-/*...*/
+int main(int argc, char *argv[]) {
+    int i;
+    int pid, numChildren;
+    int status;
+    FILE *fid;
+    char cmdLine[MAX_LINE_LEN];
+    struct command_t command;
 
-int main() {
-    /*...*/
-    /*Shell initialization*/
-    /*...*/
+    /*Read the command line parameters*/
+    if (argc != 1) {
+        fprintf(stderr, "Usage: miniShell (no arguments)\n");
+        exit(0);
+    }
 
-    /*Get directory paths from PATH*/
-    parsePath(pathv);
+    /*Shell initialization, get directory paths from PATH*/
+    /*parsePath(pathv);*/
 
     while (TRUE) {
-        printPrompt();
+        /*printPrompt();*/
 
         /*Read the command line and parse it*/
-        readCommand(commandLine);
-        /*...*/
-        parseCommand(commandLine, &command);
-        /*...*/
+        /*readCommand(commandLine);*/
+        /*parseCommand(commandLine, &command);*/
 
         /*Get the full pathname for the file*/
-        command.name = lookupPath(command.argv, pathv);
-        if (command.name == NULL) {
-            /*Report error*/
-            continue;
-        }
+        /*
+         *command.name = lookupPath(command.argv, pathv);
+         *if (command.name == NULL) {
+         *    Report error
+         *    continue;
+         *}
+         */
 
-        /*Create child and execute the command*/
-        /*...*/
+        /*Create a child process to execute the command*/
+        /*
+         *if ((pid = fork()) == 0) {
+         *    execv(command.name, command.argv);
+         *}
+         */
 
-        /*Wait for the child to terminate*/
-        /*...*/
+        /*If "&", then parent continues to next command*/
+        /*numChildren++;*/
+
+        /*Wait for all children to terminate*/
+        /*
+         *for (i = 0; i < numChildren; i++) {
+         *    wait(&status);
+         *    //should free dynamic storage in command data structure
+         *}
+         */
+
+        /*Exit the shell when user inputs a quit command*/
     }
+
+    printf("\n\nlaunch: Terminating successfully\n");
+    return 0;
 }
