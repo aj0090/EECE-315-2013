@@ -6,15 +6,17 @@
 // Reference: http://www.cplusplus.com/reference/cstring/strtok/
 char * lookupPath(char prog []) {
     /* Attempts to find prog in PATH.
-       Returns the first path in PATH that prog exists in. If prog is not found
+       Returns the first path in PATH for prog. If prog is not found
        in any path in PATH, returns "FILENOTFOUND" */
+    char ret_buffer[80];
     char *paths = getenv("PATH");  // Get PATH environment variable
     char *path = strtok(paths, ":");
 
     while (path != NULL) {
         // This will return the path where the executable is first encountered; is this the behaviour we want?
         if (checkFileInDir(path, prog)) {
-            return path;
+            snprintf(ret_buffer, sizeof ret_buffer, "%s/%s", path, prog);
+            return ret_buffer;
         }
         path = strtok(NULL, ":");
     }
@@ -54,6 +56,6 @@ void main(void) {
 
     printf("Test for lookupPath\nEnter executable name: ");
     scanf("%s", prog);
-    printf("%s is located in %s\n", prog, lookupPath(prog));
+    printf("Path for %s is %s\n", prog, lookupPath(prog));
 }
 
