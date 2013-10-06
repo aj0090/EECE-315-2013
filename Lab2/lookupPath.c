@@ -1,44 +1,59 @@
-#include <dirent.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+// Given the name of an executable, find it in the PATH and return the full PATH
 
-int lookupPath(char prog []) {
+#include "lookupPath.h"
 
-    char *path = getenv("PATH");
-    char *paths = strtok(path, ":");
 
-    while (paths != NULL) {
-        printf("%s\n", paths);
-        paths = strtok(NULL, ":");
+// Reference: http://www.cplusplus.com/reference/cstring/strtok/
+char * lookupPath(char prog []) {
+    /* Attempts to find prog in PATH.
+       Returns the first path in PATH that prog exists in. If prog is not found
+       in any path in PATH, returns "FILENOTFOUND" */
+    char *paths = getenv("PATH");  // Get PATH environment variable
+    char *path = strtok(paths, ":");
+
+    while (path != NULL) {
+        // This will return the path where the executable is first encountered; is this the behaviour we want?
+        if (checkFileInDir(path, prog)) {
+            return path;
+        }
+        path = strtok(NULL, ":");
     }
 
-
+    return "FILENOTFOUND";
 }
 
-bool check_file_in_dir(char *path, char *file) {
-    // Some code adapted from: http://stackoverflow.com/questions/4204666/
-    DIR *d;
-    struct dirent *dir;
-    d = opendir(path);
 
-    if (d) {
-        while ((dir = readdir(d)) != NULL) {
-            printf("%s\n", dir->d_name);
-            if (!strcmp(file, dir->d_name)) {
+// Some code adapted from: http://stackoverflow.com/questions/4204666/
+bool checkFileInDir(char *path, char *file) {
+    /* If file is present in path, return true, otherwise false
+
+    Usage example: checkFileInDir("/bin", "ls");
+    */
+    DIR *directory;
+    struct dirent *dir_entry;
+    directory = opendir(path);
+
+    // If directory exists, continuously read its contents. If the name
+    // of one of the contents matches file, return true.
+    if (directory) {
+        // Each iteration, get a directory entry
+        while ((dir_entry = readdir(directory)) != NULL) {
+            if (!strcmp(file, dir_entry->d_name)) {
                 return true;
             }
         }
-        closedir(d);
+        closedir(directory);
     }
+
     return false;
 }
 
 
-
 void main(void) {
-    lookupPath("ls");
-    check_file_in_dir(".", "lookupPath.c");
+    char prog [80];
+
+    printf("Test for lookupPath\nEnter executable name: ");
+    scanf("%s", prog);
+    printf("%s is located in %s\n", prog, lookupPath(prog));
 }
 
