@@ -50,7 +50,7 @@ bool checkFileInDir(char *path, char *file) {
     return false;
 }
 
-
+/*
 void main(void) {
     char prog [80];
 
@@ -58,4 +58,4 @@ void main(void) {
     scanf("%s", prog);
     printf("Path for %s is %s\n", prog, lookupPath(prog));
 }
-
+*/
