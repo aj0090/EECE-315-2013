@@ -53,7 +53,7 @@ int parseCommand(char *input_string, struct command_t *current_command)
 	// While strings are extracted from 'input_string' and set incrementally inside 
 	// the struct 'current_command', allocate memory for the next command
 	while((current_command->argv[argc] = strsep(&input_string, WHITESPACE)) != NULL){
-		if(current_command->argv[argc][0] == NULL)
+		if(current_command->argv[argc][0] != NULL)
 			current_command->argv[++argc] = (char*)malloc(MAX_ARG_LENGTH);
 		// RE-ENABLE THIS IF YOU WANT FUNCTION TO EXIT IF ANY NULL ARGS ARE GIVEN
 		/*else
