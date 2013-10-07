@@ -1,4 +1,4 @@
 all: readcommand
-	gcc -g -Wall -o readcommand readcommand.c
+	gcc -g -Wall -o test_readCommand test_readCommand.c readCommand.c 
 clean: 
-	$(RM) readcommand
+	$(RM) readCommandTest

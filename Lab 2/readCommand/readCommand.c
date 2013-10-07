@@ -1,4 +1,4 @@
-#include <readCommand.h>
+#include "readCommand.h"
 
 // REQUIRES: A non-null fully initialized command_t struct
 // MODIFIES: none
