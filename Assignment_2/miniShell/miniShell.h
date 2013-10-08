@@ -26,4 +26,4 @@ int parseCommand(char *, struct command_t *);
 int parsePath(char **);
 char *lookupPath(char **, char **);
 void printCommand(struct command_t *);
-//runInBackground();
+int runsInBackground(struct command_t *);

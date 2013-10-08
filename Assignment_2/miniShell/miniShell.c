@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     /*Shell initialization, get directory paths from PATH*/
     /*parsePath(pathv);*/
 
-    while (TRUE) {
+    /*while (TRUE) {*/
         /*printPrompt();*/
 
         /*Read the command line and parse it*/
@@ -39,25 +39,27 @@ int main(int argc, char *argv[]) {
          */
 
         /*Create a child process to execute the command*/
-        /*
-         *if ((pid = fork()) == 0) {
-         *    execv(command.name, command.argv);
-         *}
-         */
+        if ((pid = fork()) == 0) {
+            printf("I am the child\n");
+            /*execv(command.name, command.argv);*/
+            status = 1;
+            exit(0);
+        } else {
+            /*if (runsInBackground(&command)) {*/
+                /*If "&", then parent continues to next command*/
+                /*when do we free command data structure*/
+            /*} else {*/
+                /*Wait for all children to terminate*/
+                printf("I am the parent\n");
+                wait(&status);
+                //should free dynamic storage in command data structure
+            /*}*/
+        }
 
-        /*If "&", then parent continues to next command*/
-        /*numChildren++;*/
+        printf("after fork\n");
 
-        /*Wait for all children to terminate*/
-        /*
-         *for (i = 0; i < numChildren; i++) {
-         *    wait(&status);
-         *    //should free dynamic storage in command data structure
-         *}
-         */
-
-        /*Exit the shell when user inputs a quit command*/
-    }
+        /*Exit the shell when user inputs the "quit" and "exit" command*/
+    /*}*/
 
     printf("\n\nlaunch: Terminating successfully\n");
     return 0;
