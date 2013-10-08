@@ -10,6 +10,29 @@ int main(int argc, char *argv[])
 	return -1;
     }
 
+    //Test if external command can execute
+    struct command_t extCommand;
+
+    extCommand.name = "cd";
+    extCommand.argv[1] = "./";
+
+    printf("isExternalCommand: %d\n", isExternalCommand(extCommand));
+
+    extCommand.name = "pwd";
+
+    printf("isExternalCommand: %d\n", isExternalCommand(extCommand));
+
+    extCommand.name = "echo";
+    extCommand.argv[1] = "Hello World";
+
+    printf("isExternalCommand: %d\n", isExternalCommand(extCommand));
+
+    extCommand.name = "mkdir";
+    extCommand.argv[1] = "temp";
+
+    printf("isExternalCommand: %d\n", isExternalCommand(extCommand));
+
+
     //Testing echo
     echoString("$PATH");
 
@@ -35,6 +58,26 @@ int main(int argc, char *argv[])
     ret = execv ("/bin/mkdir", cmd);
 
     return 0;
+}
+
+// REQUIRES: NONE
+// MODIFIES: NONE
+// EFFECTS: Returns 0 if not an external command, returns 1 and executes command if otherwise
+int isExternalCommand(struct command_t current_command) {
+   if(strncmp(current_command.name, "pwd", 3) == 0) {
+	printWorkingDirectory();
+	return 1;
+   }
+   else if(strncmp(current_command.name, "cd", 2) == 0) {
+	changeDirectory(current_command.argv[1]);
+	return 1;
+   }	
+   else if(strncmp(current_command.name, "echo", 4) == 0) {
+	echoString(current_command.argv[1]);
+	return 1;
+   }
+   else
+	return 0;	
 }
 
 // REQUIRES: NONE
