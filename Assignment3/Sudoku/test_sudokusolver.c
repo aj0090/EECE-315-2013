@@ -109,6 +109,8 @@ int testSudokuString(char *sudokustring)
 
 	// Free the dynamic memory
 	freeNumberArrays(row_NumberArrays, column_NumberArrays, block_NumberArrays);
+	for(i = 0; i < 9; i++)
+		free(sudokuarray[i]);
 	free(sudokuarray);
 	
 	return result;
