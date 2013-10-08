@@ -37,14 +37,13 @@ const char *redirectFileName(struct command_t *current_command)
 // and do not delete the last argument.
 int checkAndSetRunsInBackground(struct command_t *current_command)
 {
+	if(current_command->argc < 2 || strcmp(current_command->argv[current_command->argc - 1], "&"))	{
+		current_command->runsInBackground = 0;
+	}
 	// If last argument == "&", delete the last argument and set runsInBackground to 1
-	if(!strcmp(current_command->argv[current_command->argc - 1], "&")){
+	else{
 		deleteLastArgument(current_command);
 		current_command->runsInBackground = 1;
-	}	
-	// Set runsInBackground to 0
-	else{
-		current_command->runsInBackground = 0;
 	}
 	
 	return 1;
@@ -64,19 +63,16 @@ int checkAndSetRedirect(struct command_t *current_command)
 {
 	// Allocate memory for the file name
 	current_command->redirectFileName = malloc(MAX_ARG_LENGTH);
+	current_command->redirectFileName = NULL;
 
 	// If the second last argument == ">", set the redirect Filename to the last argument,
 	// and delete last two arguments
-	if(!strcmp(current_command->argv[current_command->argc - 2], ">")){
-		current_command->redirectFileName = current_command->argv[current_command->argc - 1];
-		deleteLastArgument(current_command);
-		deleteLastArgument(current_command);
-	}
-
-	// Set the redirectFileName to NULL
-	else{
-		current_command->redirectFileName = NULL;
-	}
+	if(current_command->argc >= 3)
+		if(!strcmp(current_command->argv[current_command->argc - 2], ">")){
+			current_command->redirectFileName = current_command->argv[current_command->argc - 1];
+			deleteLastArgument(current_command);
+			deleteLastArgument(current_command);
+		}
 	
 	return 1;
 }
