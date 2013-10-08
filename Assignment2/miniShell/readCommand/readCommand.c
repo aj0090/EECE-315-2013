@@ -45,7 +45,7 @@ int checkAndSetRunsInBackground(struct command_t *current_command)
 		deleteLastArgument(current_command);
 		current_command->runsInBackground = 1;
 	}
-	
+
 	return 1;
 }
 
@@ -55,7 +55,7 @@ int checkAndSetRunsInBackground(struct command_t *current_command)
 // the function checkAndSetRunsInBackground() run
 // MODIFIES: current_command->redirectFileName, current_command->argc,
 // current_command->argv
-// EFFECTS: Allocates memory for current_command->redirectFileName. 
+// EFFECTS: Allocates memory for current_command->redirectFileName.
 // If the current_command->argv[current_command->argc - 2] == ">", set redirectFileName
 // to current_command->argv[current_command->argc - 1], and delete the last two arguments.
 // Else, set it to NULL. Returns 1 on completion.
@@ -73,7 +73,7 @@ int checkAndSetRedirect(struct command_t *current_command)
 			deleteLastArgument(current_command);
 			deleteLastArgument(current_command);
 		}
-	
+
 	return 1;
 }
 
@@ -98,14 +98,14 @@ int deleteLastArgument(struct command_t *current_command)
 
 // REQUIRES: A pointer to a command_t struct
 // MODIFIES: current_command
-// EFFECTS: Reads in user input through stdin and calls parseCommand to 
+// EFFECTS: Reads in user input through stdin and calls parseCommand to
 // set the struct members
 int readCommand(struct command_t *current_command)
 {
 	// Create an input buffer and allocate it memory
 	char *input_buffer;
 	input_buffer = (char *)malloc(MAX_LINE_LENGTH);
-	
+
 	// Read in an input string from stdin and then parse the command into the
 	// passed argument 'current_command'
 	printf("Please enter the requested command and arguments.\n");
@@ -124,7 +124,7 @@ int readCommand(struct command_t *current_command)
 
 // REQUIRES: A non-null input string, and a non-null command_t struct
 // MODIFIES: current_command
-// EFFECTS: Parses strings seperated by the characters defined by WHITESPACE within  
+// EFFECTS: Parses strings seperated by the characters defined by WHITESPACE within
 // input_string into new blocks of memory and initializes current_commands argv, argc,
 // and name members according to those values
 int parseCommand(char *input_string, struct command_t *current_command)
@@ -137,7 +137,7 @@ int parseCommand(char *input_string, struct command_t *current_command)
 	int argc = 0;
 	current_command->argv[argc] = (char *)malloc(MAX_ARG_LENGTH);
 
-	// While strings are extracted from 'input_string' and set incrementally inside 
+	// While strings are extracted from 'input_string' and set incrementally inside
 	// the struct 'current_command', allocate memory for the next command
 	while((current_command->argv[argc] = strsep(&input_string, WHITESPACE)) != NULL){
 		if(current_command->argv[argc][0] != 0)
@@ -150,7 +150,7 @@ int parseCommand(char *input_string, struct command_t *current_command)
 
 	current_command->argv[++argc] = (char*)malloc(MAX_ARG_LENGTH);
 
-	// Set the last argv member to be 1 and assign a decremented copy of argc to 
+	// Set the last argv member to be 1 and assign a decremented copy of argc to
 	// 'current_command'
 	current_command->argv[argc] = NULL;
 	current_command->argc = argc - 1;

@@ -7,9 +7,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 bool checkFileInDir(char *path, char *file);
 char * lookupPath(char prog []);
-
 
 #endif

@@ -1,3 +1,6 @@
+#ifndef READCOMMAND_H
+#define READCOMMAND_H
+
 #include <stdio.h> // Used for standard in/out
 #include <stdlib.h> // Functions for memory, like malloc, free, etc.
 #include <unistd.h>
@@ -12,13 +15,12 @@
 #define SPACE " "
 
 
-
 struct command_t{
 	char *name;
 	int runsInBackground;
-	
+
 	char *redirectFileName;
-	
+
 	int argc;
 	char *argv[MAX_ARGS];
 };
@@ -37,3 +39,5 @@ int deleteLastArgument(struct command_t *);
 int readCommand(struct command_t *);
 int parseCommand(char *, struct command_t *);
 void printCommand(struct command_t *);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef MINISHELL_H
+#define MINISHELL_H
+
 #define MAX_LINE_LEN    80
 #define MAX_ARGS    64
 #define MAX_ARG_LEN 16
@@ -9,21 +12,19 @@
 #define TRUE 1
 #define FALSE 0
 
-#ifndef MINISHELL_H
-#define MINISHELL_H
 //Data Structures
-struct command_t {
-    char *name;
-    int argc;
-    char *argv[MAX_ARGS];
-};
-#endif
+/*
+ *struct command_t{
+ *    char *name;
+ *    int argc;
+ *    char *argv[MAX_ARGS];
+ *    int runsInBackground;
+ *    char *redirectFileName;
+ *};
+ */
 
 //Function Prototypes
 void printPrompt();
-void readCommand(char *);
-int parseCommand(char *, struct command_t *);
 int parsePath(char **);
-char *lookupPath(char **, char **);
-void printCommand(struct command_t *);
-int runsInBackground(struct command_t *);
+
+#endif
