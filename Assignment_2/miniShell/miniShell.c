@@ -6,11 +6,9 @@
 #include "minishell.h"
 
 int main(int argc, char *argv[]) {
-    int i;
-    int pid, numChildren;
+    int pid;
     int status;
-    FILE *fid;
-    char cmdLine[MAX_LINE_LEN];
+    char commandLine[MAX_LINE_LEN];
     struct command_t command;
 
     /*Read the command line parameters*/
@@ -45,17 +43,14 @@ int main(int argc, char *argv[]) {
             status = 1;
             exit(0);
         } else {
-            /*if (runsInBackground(&command)) {*/
-                /*If "&", then parent continues to next command*/
-                /*when do we free command data structure*/
-            /*} else {*/
+            /*if (!runsInBackground(&command)) {*/
                 /*Wait for all children to terminate*/
-                printf("I am the parent\n");
                 wait(&status);
-                //should free dynamic storage in command data structure
             /*}*/
         }
 
+        printf("I am the parent\n");
+        //free dynamic storage in command data structure here
         printf("after fork\n");
 
         /*Exit the shell when user inputs the "quit" and "exit" command*/
