@@ -5,7 +5,7 @@ char *lookupPath(char prog [])
 {
     // Attempts to find prog in PATH.
     // Returns the first path in PATH for prog.
-    // If prog is not found in any path in PATH, returns "FILENOTFOUND"
+    // If prog is not found in any path in PATH, returns NOT_FOUND
     char *ret_buffer = (char *)malloc(MAX_LINE_LEN);
     char *paths = (char *)malloc(MAX_PATH_LEN);
 
@@ -25,7 +25,7 @@ char *lookupPath(char prog [])
         path = strtok(NULL, ":");
     }
 
-    snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "FILENOTFOUND");
+    snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), NOT_FOUND);
     free(paths);
     return ret_buffer;
 }

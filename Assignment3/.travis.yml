@@ -1,0 +1,27 @@
+language: c
+
+compiler:
+    - gcc
+
+before_install:
+
+# command to install dependencies
+install:
+
+# command to run tests
+script:
+  - cd Assignment3/Philosophers/
+  - make
+
+after_success:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install valgrind
+  - valgrind --leak-check=full --show-reachable=yes --track-origins=yes --suppressions=../../travis-ci.supp ./philos
+
+# whitelist
+branches:
+    only:
+        - stable
+
+#notifications:
+    #email: false
