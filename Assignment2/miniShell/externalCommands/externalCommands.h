@@ -1,6 +1,6 @@
 //Made by Byron Duenas
-#ifndef MINISHELL_H
-#define MINISHELL_H
+#ifndef EXTERNALCOMMANDS_H
+#define EXTERNALCOMMANDS_H
 
 
 #include <stdio.h>

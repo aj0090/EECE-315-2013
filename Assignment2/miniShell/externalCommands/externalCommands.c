@@ -59,7 +59,7 @@ void changeDirectory(char *dir)
     }
     else
     {
-        realDir = &home;
+        realDir = (char *) &home;
     }
 
     //Generate string of form "cd dir; pwd"
