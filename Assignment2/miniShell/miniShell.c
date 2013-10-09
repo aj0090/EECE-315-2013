@@ -16,6 +16,7 @@ int main(int argc, char *argv[]) {
     int status;
     struct command_t command;
     char *path;
+    int i;
 
     // Check that the program is run properly
     if (argc != 1) {
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
                  */
 
                 printf("I am the child\n");
-                for (int i = 0; i < command.argc; i++) {
+                for (i = 0; i < command.argc; i++) {
                     printf("argument[%i]: %s\n", i, command.argv[i]);
                 }
                 printf("Path: %s\n", path);
@@ -71,7 +72,7 @@ int main(int argc, char *argv[]) {
             }
 
             // Free heap objects
-            free(path);
+            //free(path);
             command.name = NULL;
             // do we need to free command?
 
