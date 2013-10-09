@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include "../readCommand/readCommand.h"
 
-#define HOST_NAME_MAX 16
+#define HOSTNAME_MAX 16
 #define PROMPT_MAX 256
 #define DIR_NAME_MAX 256
 #define NEW_LINE "\n"

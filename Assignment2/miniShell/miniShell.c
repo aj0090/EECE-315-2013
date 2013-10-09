@@ -31,7 +31,8 @@ int main(int argc, char *argv[])
             printf(ANSI_COLOR_YELLOW "No executable command given." ANSI_COLOR_RESET "\n");
             continue;
         }
-        else if(readResult == -2) {
+        else if (readResult == -2)
+        {
             printf(ANSI_COLOR_YELLOW "Command name too long." ANSI_COLOR_RESET "\n");
             continue;
         }
@@ -44,6 +45,17 @@ int main(int argc, char *argv[])
             {
                 printf(ANSI_COLOR_YELLOW "Shell exiting . . ." ANSI_COLOR_RESET "\n");
                 exit(0);
+            }
+
+            // If lookupPath returns FILENOTFOUND, inform the user
+            //printf("Command name: %s\n", command.name); //DEBUGGING
+            path = lookupPath(command.name);
+            //printf("Path: %s\n", path); //DEBUGGING
+            if (strncmp(path, "FILENOTFOUND", 12) == 0)
+            {
+                printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the"
+                       " PATH. :("ANSI_COLOR_RESET"\n", command.name);
+                continue;
             }
 
             // Create a child process to execute the command
@@ -70,16 +82,6 @@ int main(int argc, char *argv[])
                 }
                 */
 
-                // If lookupPath returns FILENOTFOUND, inform the user
-                //printf("Command name: %s\n", command.name); //DEBUGGING
-                path = lookupPath(command.name);
-                //printf("Path: %s\n", path); //DEBUGGING
-                if (strncmp(path, "FILENOTFOUND", 12) == 0)
-                {
-                    printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the"
-                           " PATH. :("ANSI_COLOR_RESET"\n", command.name);
-                    continue;
-                }
                 execv(path, command.argv);
 
                 // Print execv errors

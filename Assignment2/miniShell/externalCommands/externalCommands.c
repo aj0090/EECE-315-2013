@@ -119,7 +119,7 @@ void printPrompt()
 {
     char cwd[PROMPT_MAX];
 
-    char hostname[HOST_NAME_MAX];
+    char hostname[HOSTNAME_MAX];
 
     gethostname(hostname, sizeof(hostname));
 
