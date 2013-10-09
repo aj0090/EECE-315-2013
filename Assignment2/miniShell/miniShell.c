@@ -33,7 +33,11 @@ int main(int argc, char *argv[]) {
     /*cd/pwd will call printPrompt()*/
 
         // Read the command line and parse it
-        readCommand(&command);
+        if(readCommand(&command) != 1) {
+            printf("No executable command given.\n");
+            continue;
+        }
+        /*printf("%s", command.name);*/
 
         if (!(command.name == NULL) && !isExternalCommand(&command)) {
 

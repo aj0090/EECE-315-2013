@@ -109,8 +109,9 @@ int readCommand(struct command_t *current_command)
 	// Read in an input string from stdin and then parse the command into the
 	// passed argument 'current_command'
 	fgets(input_buffer, MAX_LINE_LENGTH, stdin);
+
     // Checking for null input
-    if(strcmp(input_buffer, "\n")){
+    if(!(strspn(input_buffer, WHITESPACE) == strlen(input_buffer))){
         if(parseCommand(input_buffer, current_command) != -1)
         {
             // Return 1 to signify successful read
@@ -119,6 +120,7 @@ int readCommand(struct command_t *current_command)
             return 1;
         }
     }
+
 
 	// Return -1 to signify unsuccessful read
 	return -1;
@@ -145,7 +147,6 @@ int parseCommand(char *input_string, struct command_t *current_command)
 			return -1
 			*/
 	}
-	printf("%d", current_command->argc);
 
 	current_command->argv[++argc] = (char*)malloc(MAX_ARG_LENGTH);
 
