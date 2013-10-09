@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #include "miniShell.h"
 #include "readCommand/readCommand.h"
@@ -18,7 +20,7 @@ int main(int argc, char *argv[]) {
     int status;
     struct command_t command;
     char *path;
-    int i;
+    int i, fd;
 
     // Check that the program is run properly
     if (argc != 1) {
@@ -37,7 +39,6 @@ int main(int argc, char *argv[]) {
             printf("No executable command given.\n");
             continue;
         }
-        /*printf("%s", command.name);*/
 
         if (!(command.name == NULL) && !isExternalCommand(&command)) {
 
@@ -49,11 +50,17 @@ int main(int argc, char *argv[]) {
 
             // Create a child process to execute the command
             if ((pid = fork()) == 0) {
-                /*
-                 *if (redirectsOutput(&command)) {
-                 *    printf("Child will need to redirect\n");
-                 *}
-                 */
+
+                // If redirection flag is set in command, redirect output
+                 if(redirectsOutput(&command)) {
+                    // Open filename given with read/write (create if doesn't exist),
+                    // set read and write permissions for owner
+                    fd = open(redirectFileName(&command), O_RDWR | O_CREAT,
+                              S_IRUSR | S_IWUSR);
+                    dup2(fd, 1);  // Duplicates fd as STDOUT and closes STDOUT,
+                                  // effectively redirecting output
+                    close(fd);
+                 }
 
                 printf("I am the child\n");
                 for (i = 0; i < command.argc; i++) {

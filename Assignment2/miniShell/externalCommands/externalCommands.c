@@ -87,6 +87,7 @@ void changeDirectory(char * dir) {
     char commandLine[COMMAND_LINE_MAX];
     char home[] = "~";
     char * realDir;
+    int i;
 
     // If no dir argument provided, go home (standard Bash behaviour)
     if(dir!=NULL) {
@@ -97,7 +98,6 @@ void changeDirectory(char * dir) {
     }
 
     //Generate string of form "cd dir; pwd"
-    printf("%s", realDir);
     sprintf(commandLine, "cd %s; pwd", realDir);
 
     //Call the generated command line string and redirect output of "pwd" to temp
@@ -110,14 +110,11 @@ void changeDirectory(char * dir) {
 
     pclose(temp);
 
-    int i;
-
     //Strip the new line at the end of the "pwd" output
     for(i = 0; i < sizeof(newDir); i++)
     if(newDir[i] == '\0')
         newDir[i-1]='\0';
 
-    printf("%s", newDir);
     //Actually change to newDir and check if it's valid
     if(chdir(newDir) < 0) {
        printf("Change directory unsuccessful.\n");
@@ -157,7 +154,7 @@ void printPrompt() {
     gethostname(hostname, sizeof(hostname));
 
     //Set up promptString to be "user@machine:[currentWorkingDirectory]"
-    sprintf(promptString,"EECE315_$HELL %s@%s:%s\n$ ", getenv("USER"), hostname, getcwd (NULL, 0));
+    sprintf(promptString,"EECE315_$HELL<>%s@%s:%s\n$ ", getenv("USER"), hostname, getcwd (NULL, 0));
 
     printf("%s", promptString);
     fflush(stdout);
