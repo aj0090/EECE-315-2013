@@ -7,6 +7,8 @@
 #include "miniShell.h"
 #include "readCommand/readCommand.h"
 #include "lookupPath/lookupPath.h"
+#include "externalCommands/externalCommands.h"
+
 
 // REQUIRES:
 // MODIFIES:
@@ -26,14 +28,14 @@ int main(int argc, char *argv[]) {
 
     // Maintains the interactive shell
     while (TRUE) {
-        /*printPrompt();*/
+        printPrompt();
 
     /*cd/pwd will call printPrompt()*/
 
         // Read the command line and parse it
         readCommand(&command);
 
-        if (!(command.name == NULL)) {
+        if (!(command.name == NULL) && !isExternalCommand(&command)) {
 
             // Exit the interactive shell if command is 'exit' or 'quit'
             if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0) {

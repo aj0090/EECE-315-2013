@@ -2,12 +2,12 @@
 
 #include "externalCommands.h"
 
-//Remove/comment out main in final product
+/*//Remove/comment out main in final product
 int main(int argc, char *argv[])
 {
     if (argc != 3){
-	fprintf(stderr,"Usage: test (folder you want to cd into) (folder you want to create)\n");
-	return -1;
+    fprintf(stderr,"Usage: test (folder you want to cd into) (folder you want to create)\n");
+    return -1;
     }
 
     //Test if external command can execute
@@ -58,26 +58,26 @@ int main(int argc, char *argv[])
     ret = execv ("/bin/mkdir", cmd);
 
     return 0;
-}
+}*/
 
 // REQUIRES: NONE
 // MODIFIES: NONE
 // EFFECTS: Returns 0 if not an external command, returns 1 and executes command if otherwise
-int isExternalCommand(struct command_t current_command) {
-   if(strncmp(current_command.name, "pwd", 3) == 0) {
-	printWorkingDirectory();
-	return 1;
+int isExternalCommand(struct command_t *current_command) {
+   if(strncmp(current_command->name, "pwd", 3) == 0) {
+    printWorkingDirectory();
+    return 1;
    }
-   else if(strncmp(current_command.name, "cd", 2) == 0) {
-	changeDirectory(current_command.argv[1]);
-	return 1;
-   }	
-   else if(strncmp(current_command.name, "echo", 4) == 0) {
-	echoString(current_command.argv[1]);
-	return 1;
+   else if(strncmp(current_command->name, "cd", 2) == 0) {
+    changeDirectory(current_command->argv[1]);
+    return 1;
+   }
+   else if(strncmp(current_command->name, "echo", 4) == 0) {
+    echoString(current_command->argv[1]);
+    return 1;
    }
    else
-	return 0;	
+    return 0;
 }
 
 // REQUIRES: NONE
@@ -87,6 +87,7 @@ void changeDirectory(char * dir) {
     char commandLine[COMMAND_LINE_MAX];
 
     //Generate string of form "cd dir; pwd"
+    printf("%s", dir);
     sprintf(commandLine, "cd %s; pwd", dir);
 
     //Call the generated command line string and redirect output of "pwd" to temp
@@ -103,14 +104,18 @@ void changeDirectory(char * dir) {
 
     //Strip the new line at the end of the "pwd" output
     for(i = 0; i < sizeof(newDir); i++)
-	if(newDir[i] == '\0')
-	    newDir[i-1]='\0';
+    if(newDir[i] == '\0')
+        newDir[i-1]='\0';
 
+    printf("%s", newDir);
     //Actually change to newDir and check if it's valid
-    if(chdir(newDir) < 0)
-	printf("Change directory unsuccessful.\n");
-    else
-	printf("Change directory successful.\n");
+    if(chdir(newDir) < 0) {
+       printf("Change directory unsuccessful.\n");
+       printf("Error with execv %s\n", strerror(errno));
+    }
+    else {
+       printf("Change directory successful.\n");
+    }
 }
 
 // REQUIRES: NONE
@@ -142,7 +147,7 @@ void printPrompt() {
     gethostname(hostname, sizeof(hostname));
 
     //Set up promptString to be "user@machine:[currentWorkingDirectory]"
-    sprintf(promptString,"%s@%s:[%s]", getenv("USER"), hostname, getcwd (NULL, 0));
+    sprintf(promptString,"EECE315_$HELL %s@%s:%s\n$ ", getenv("USER"), hostname, getcwd (NULL, 0));
 
     printf("%s", promptString);
     fflush(stdout);
