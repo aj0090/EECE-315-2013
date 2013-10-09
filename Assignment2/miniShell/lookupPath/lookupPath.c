@@ -10,21 +10,31 @@ char *lookupPath(char prog [])
        Returns the first path in PATH for prog. If prog is not found
        in any path in PATH, returns "FILENOTFOUND" */
     char *ret_buffer = (char *)malloc(MAX_LINE_LEN);
-    char *paths = getenv("PATH");  // Get PATH environment variable
+    char *paths = (char *)malloc(MAX_PATH_LEN);
+    //printf("getenv(\"PATH\"): %s", getenv("PATH")); //DEBUGGING
+    strcpy(paths, getenv("PATH"));  // Get PATH environment variable
+    //printf("paths: %s\n", paths); //DEBUGGING
     char *path = strtok(paths, ":");
 
+    //printf("prog: %s\n", prog); //DEBUGGING
     while (path != NULL)
     {
         // This will return the path where the executable is first encountered; is this the behaviour we want?
         if (checkFileInDir(path, prog))
         {
             snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "%s/%s", path, prog);
+            //printf("ret_buffer: %s\n", ret_buffer); //DEBUGGING //DEBUGGING
             return ret_buffer;
         }
         path = strtok(NULL, ":");
+
+        //printf("paths: %s\npath: %s\n", paths, path); //DEBUGGING
     }
 
-    return "FILENOTFOUND";
+    //return "FILENOTFOUND";
+    snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "FILENOTFOUND");
+    //printf("ret_buffer: %s\n", ret_buffer); //DEBUGGING //DEBUGGING
+    return ret_buffer;
 }
 
 

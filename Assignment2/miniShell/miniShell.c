@@ -1,15 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include "miniShell.h"
-#include "readCommand/readCommand.h"
-#include "lookupPath/lookupPath.h"
-#include "externalCommands/externalCommands.h"
 
 
 // REQUIRES:
@@ -74,11 +63,13 @@ int main(int argc, char *argv[])
                 {
                     printf("argument[%i]: %s\n", i, command.argv[i]);
                 }
-                printf("Path: %s\n", path);*/
+                */
 
                 // If lookupPath returns FILENOTFOUND, inform the user
+                //printf("Command name: %s\n", command.name); //DEBUGGING
                 path = lookupPath(command.name);
-                if (!strcmp(path, "FILENOTFOUND"))
+                //printf("Path: %s\n", path); //DEBUGGING
+                if (strncmp(path, "FILENOTFOUND", 12) == 0)
                 {
                     printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the"
                            " PATH. :("ANSI_COLOR_RESET"\n", command.name);
