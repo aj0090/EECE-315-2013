@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include "../readCommand/readCommand.h"
 
 #define HOST_NAME_MAX 16

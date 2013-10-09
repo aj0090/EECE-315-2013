@@ -7,8 +7,9 @@
 #include <string.h> // strsep(), etc.
 
 #define MAX_ARGS 64
-#define MAX_ARG_LENGTH 16
-#define MAX_LINE_LENGTH 80
+#define MAX_PROG_LENGTH 16
+#define MAX_ARG_LENGTH 128
+#define MAX_LINE_LENGTH 1024
 //#define WHITESPACE " \n"
 #define WHITESPACE  " \t\n"
 #define SPACE " "

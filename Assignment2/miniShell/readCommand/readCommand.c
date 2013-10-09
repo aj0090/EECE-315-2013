@@ -108,7 +108,7 @@ int readCommand(struct command_t *current_command)
     // Create an input buffer and allocate it memory
     char *input_buffer;
     input_buffer = (char *)malloc(MAX_LINE_LENGTH);
-
+    int parseRes, i;
     // Read in an input string from stdin and then parse the command into the
     // passed argument 'current_command'
     fgets(input_buffer, MAX_LINE_LENGTH, stdin);
@@ -116,15 +116,21 @@ int readCommand(struct command_t *current_command)
     // Checking for null input
     if (!(strspn(input_buffer, WHITESPACE) == strlen(input_buffer)))
     {
-        if (parseCommand(input_buffer, current_command) != -1)
+        parseRes = parseCommand(input_buffer, current_command);
+
+        if (parseRes == 1)
         {
             // Return 1 to signify successful read
             checkAndSetRunsInBackground(current_command);
             checkAndSetRedirect(current_command);
             return 1;
         }
+        // If command too long, return -2
+        else if (parseRes == -2)
+        {
+            return -2;
+        }
     }
-
 
     // Return -1 to signify unsuccessful read
     return -1;
@@ -145,6 +151,9 @@ int parseCommand(char *input_string, struct command_t *current_command)
     // the struct 'current_command', allocate memory for the next command
     while ((current_command->argv[argc] = strsep(&input_string, WHITESPACE)) != NULL)
     {
+        // If command name too long, return -2
+        if (argc == 0 && strlen(current_command->argv[0]) > MAX_PROG_LENGTH)
+            return -2;
         if (current_command->argv[argc][0] != 0)
             current_command->argv[++argc] = (char *)malloc(MAX_ARG_LENGTH);
         // RE-ENABLE THIS IF YOU WANT FUNCTION TO EXIT IF ANY NULL ARGS ARE GIVEN

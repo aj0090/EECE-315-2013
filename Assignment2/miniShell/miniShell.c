@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     int status;
     struct command_t command;
     char *path;
-    int i, fd;
+    int i, fd, readResult;
 
     // Check that the program is run properly
     if (argc != 1)
@@ -25,9 +25,14 @@ int main(int argc, char *argv[])
         printPrompt();
 
         // Read the command line and parse it
-        if (readCommand(&command) != 1)
+        readResult = readCommand(&command);
+        if (readResult == -1)
         {
             printf(ANSI_COLOR_YELLOW "No executable command given." ANSI_COLOR_RESET "\n");
+            continue;
+        }
+        else if(readResult == -2) {
+            printf(ANSI_COLOR_YELLOW "Command name too long." ANSI_COLOR_RESET "\n");
             continue;
         }
 

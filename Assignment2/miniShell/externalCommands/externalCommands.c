@@ -7,23 +7,39 @@
 // EFFECTS: Returns 0 if not an external command, returns 1 and executes command if otherwise
 int isExternalCommand(struct command_t *current_command)
 {
+    int fd, stdoutCopy;
+
+    // If redirection flag is set in command, redirect output
+    if (redirectsOutput(current_command))
+    {
+        // Open filename given with read/write (create if doesn't exist),
+        // set read and write permissions for owner
+        fd = open(redirectFileName(current_command), O_RDWR | O_CREAT,
+                  S_IRUSR | S_IWUSR);
+        stdoutCopy = dup(1);
+        dup2(fd, 1);  // Duplicates fd as STDOUT and closes STDOUT,
+        // effectively redirecting output
+        close(fd);
+    }
+
     if (strncmp(current_command->name, "pwd", 3) == 0)
     {
         printWorkingDirectory();
-        return 1;
     }
     else if (strncmp(current_command->name, "cd", 2) == 0)
     {
         changeDirectory(current_command->argv[1]);
-        return 1;
     }
     else if (strncmp(current_command->name, "echo", 4) == 0)
     {
         echoString(current_command->argv[1]);
-        return 1;
     }
     else
         return 0;
+
+    dup2(stdoutCopy, 1);
+    close(stdoutCopy);
+    return 1;
 }
 
 // REQUIRES: NONE
