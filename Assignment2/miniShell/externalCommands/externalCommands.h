@@ -17,9 +17,9 @@
 #define COMMAND_LINE_MAX 256
 
 int isExternalCommand(struct command_t *current_command);
-void changeDirectory( char * dir);
+void changeDirectory( char *dir);
 void printWorkingDirectory();
-void echoString( char * str);
+void echoString( char *str);
 void printPrompt();
 
 

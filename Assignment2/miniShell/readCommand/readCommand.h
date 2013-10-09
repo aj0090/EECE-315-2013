@@ -13,12 +13,13 @@
 #define WHITESPACE  " \t\n"
 #define SPACE " "
 
-struct command_t{
-	char *name;
-	int argc;
-	char *argv[MAX_ARGS];
-	int runsInBackground;
-	char *redirectFileName;
+struct command_t
+{
+    char *name;
+    int argc;
+    char *argv[MAX_ARGS];
+    int runsInBackground;
+    char *redirectFileName;
 };
 
 const int runsInBackground(struct command_t *);
