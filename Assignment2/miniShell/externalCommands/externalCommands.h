@@ -16,6 +16,11 @@
 #define NEW_LINE "\n"
 #define COMMAND_LINE_MAX 256
 
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
+
 int isExternalCommand(struct command_t *current_command);
 void changeDirectory( char *dir);
 void printWorkingDirectory();

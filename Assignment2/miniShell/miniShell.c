@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         // Read the command line and parse it
         if (readCommand(&command) != 1)
         {
-            printf("No executable command given.\n");
+            printf(ANSI_COLOR_YELLOW "No executable command given." ANSI_COLOR_RESET "\n");
             continue;
         }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
             // Exit the interactive shell if command is 'exit' or 'quit'
             if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0)
             {
-                printf("Shell exiting...\n");
+                printf(ANSI_COLOR_YELLOW "Shell exiting . . ." ANSI_COLOR_RESET "\n");
                 exit(0);
             }
 
@@ -76,12 +76,19 @@ int main(int argc, char *argv[])
                 }
                 printf("Path: %s\n", path);*/
 
+                // If lookupPath returns FILENOTFOUND, inform the user
                 path = lookupPath(command.name);
+                if (!strcmp(path, "FILENOTFOUND"))
+                {
+                    printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the"
+                           " PATH. :("ANSI_COLOR_RESET"\n", command.name);
+                    continue;
+                }
                 execv(path, command.argv);
 
                 // Print execv errors
                 // printf("Error with execv %s\n", strerror(errno)); // DEBUGGING
-                printf("%s\n", strerror(errno));
+                printf(ANSI_COLOR_RED"ERROR: %s"ANSI_COLOR_RESET"\n", strerror(errno));
                 status = 1;
                 exit(0);
             }

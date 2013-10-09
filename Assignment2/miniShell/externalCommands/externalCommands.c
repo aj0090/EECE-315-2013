@@ -101,15 +101,16 @@ void echoString(char *str)
 // EFFECTS: Prints out the prompt string after the execution of any command
 void printPrompt()
 {
-    char promptString[PROMPT_MAX];
+    char cwd[PROMPT_MAX];
 
     char hostname[HOST_NAME_MAX];
 
     gethostname(hostname, sizeof(hostname));
 
-    //Set up promptString to be "user@machine:[currentWorkingDirectory]"
-    sprintf(promptString, "EECE315_$HELL<>%s@%s:%s\n$ ", getenv("USER"), hostname, getcwd (NULL, 0));
+    printf("EECE315_$HELL<>%s@%s:", getenv("USER"), hostname);
+    sprintf(cwd, "%s", getcwd(NULL, 0));
+    printf(ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n$ ", cwd);
 
-    printf("%s", promptString);
+
     fflush(stdout);
 }
