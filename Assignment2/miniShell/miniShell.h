@@ -1,11 +1,23 @@
 #ifndef MINISHELL_H
 #define MINISHELL_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+#include "readCommand/readCommand.h"
+#include "lookupPath/lookupPath.h"
+#include "externalCommands/externalCommands.h"
+
+
 #define MAX_LINE_LEN    80
 #define MAX_ARGS    64
 #define MAX_ARG_LEN 16
 #define MAX_PATHS   64
-#define MAX_PATH_LEN    96
 
 #define TRUE 1
 #define FALSE 0
