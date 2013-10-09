@@ -145,6 +145,7 @@ int parseCommand(char *input_string, struct command_t *current_command)
 			return -1
 			*/
 	}
+	printf("%d", current_command->argc);
 
 	current_command->argv[++argc] = (char*)malloc(MAX_ARG_LENGTH);
 

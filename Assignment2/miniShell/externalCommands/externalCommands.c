@@ -85,10 +85,20 @@ int isExternalCommand(struct command_t *current_command) {
 // EFFECTS: The current working directory is changed via "cd dir"
 void changeDirectory(char * dir) {
     char commandLine[COMMAND_LINE_MAX];
+    char home[] = "~";
+    char * realDir;
+
+    // If no dir argument provided, go home (standard Bash behaviour)
+    if(dir!=NULL) {
+        realDir = dir;
+    }
+    else {
+        realDir = &home;
+    }
 
     //Generate string of form "cd dir; pwd"
-    printf("%s", dir);
-    sprintf(commandLine, "cd %s; pwd", dir);
+    printf("%s", realDir);
+    sprintf(commandLine, "cd %s; pwd", realDir);
 
     //Call the generated command line string and redirect output of "pwd" to temp
     FILE *temp = popen(commandLine, "r");
