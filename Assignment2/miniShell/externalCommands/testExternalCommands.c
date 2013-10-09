@@ -1,11 +1,10 @@
 #include "externalCommands.h"
 
-//Remove/comment out main in final product
 int main(int argc, char *argv[])
 {
     if (argc != 3){
-    fprintf(stderr,"Usage: test (folder you want to cd into) (folder you want to create)\n");
-    return -1;
+        fprintf(stderr,"Usage: test (folder you want to cd into) (folder you want to create)\n");
+        return -1;
     }
 
     //Test if external command can execute
@@ -30,7 +29,6 @@ int main(int argc, char *argv[])
 
     printf("isExternalCommand: %d\n", isExternalCommand(&extCommand));
 
-
     //Testing echo
     echoString("$PATH");
 
@@ -53,7 +51,7 @@ int main(int argc, char *argv[])
     int ret;
     char *cmd[] = { "mkdir", argv[2], (char *)0 };
 
-    ret = execv ("/bin/mkdir", cmd);
+    ret = execv("/bin/mkdir", cmd);
 
     return 0;
 }

@@ -7,9 +7,11 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Constants
 #define MAX_LINE_LEN    80
 #define MAX_PATH_LEN    1000
 
+// Function Prototypes
 bool checkFileInDir(char *path, char *file);
 char *lookupPath(char prog []);
 

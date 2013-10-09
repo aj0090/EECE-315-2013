@@ -1,19 +1,20 @@
 #ifndef READCOMMAND_H
 #define READCOMMAND_H
 
-#include <stdio.h> // Used for standard in/out
-#include <stdlib.h> // Functions for memory, like malloc, free, etc.
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <string.h> // strsep(), etc.
+#include <string.h>
 
+// Constants
 #define MAX_ARGS 64
 #define MAX_PROG_LENGTH 16
 #define MAX_ARG_LENGTH 128
 #define MAX_LINE_LENGTH 1024
-//#define WHITESPACE " \n"
 #define WHITESPACE  " \t\n"
 #define SPACE " "
 
+// Data Structures
 struct command_t
 {
     char *name;
@@ -23,6 +24,7 @@ struct command_t
     char *redirectFileName;
 };
 
+// Function Prototypes
 const int runsInBackground(struct command_t *);
 
 const int redirectsOutput(struct command_t *);

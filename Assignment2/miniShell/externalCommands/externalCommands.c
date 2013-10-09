@@ -1,5 +1,3 @@
-//Made by Byron Duenas
-
 #include "externalCommands.h"
 
 // REQUIRES: NONE
@@ -12,13 +10,12 @@ int isExternalCommand(struct command_t *current_command)
     // If redirection flag is set in command, redirect output
     if (redirectsOutput(current_command))
     {
-        // Open filename given with read/write (create if doesn't exist),
-        // set read and write permissions for owner
-        fd = open(redirectFileName(current_command), O_RDWR | O_CREAT,
-                  S_IRUSR | S_IWUSR);
+        // Open filename given with read/write (create if doesn't exist), set read and write permissions for owner
+        fd = open(redirectFileName(current_command), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
         stdoutCopy = dup(1);
-        dup2(fd, 1);  // Duplicates fd as STDOUT and closes STDOUT,
-        // effectively redirecting output
+
+        // Duplicates fd as STDOUT and closes STDOUT, effectively redirecting output
+        dup2(fd, 1);
         close(fd);
     }
 
@@ -39,7 +36,6 @@ int isExternalCommand(struct command_t *current_command)
         dup2(stdoutCopy, 1);
         close(stdoutCopy);
         return 0;
-
     }
 
     dup2(stdoutCopy, 1);
@@ -67,33 +63,34 @@ void changeDirectory(char *dir)
         realDir = (char *) &home;
     }
 
-    //Generate string of form "cd dir; pwd"
+    // Generate string of form "cd dir; pwd"
     sprintf(commandLine, "cd %s; pwd", realDir);
 
-    //Call the generated command line string and redirect output of "pwd" to temp
+    // Call the generated command line string and redirect output of "pwd" to temp
     FILE *temp = popen(commandLine, "r");
-
     char newDir[DIR_NAME_MAX];
 
-    //Store the redirected output of "pwd" to string newDir
-    while (fgets(newDir, sizeof(newDir), temp) != 0)
+    // Store the redirected output of "pwd" to string newDir
+    while (fgets(newDir, sizeof(newDir), temp) != 0);
 
-        pclose(temp);   //XXX ??????? lolwat
+    pclose(temp);
 
-    //Strip the new line at the end of the "pwd" output
-    for (i = 0; i < sizeof(newDir); i++)
-        if (newDir[i] == '\0')
+    // Strip the new line at the end of the "pwd" output
+    for (i = 0; i < sizeof(newDir); i++) {
+        if (newDir[i] == '\0') {
             newDir[i - 1] = '\0';
+        }
+    }
 
-    //Actually change to newDir and check if it's valid
+    // Actually change to newDir and check if it's valid
     if (chdir(newDir) < 0)
     {
-        //printf("Change directory unsuccessful.\n"); // DEBUGGING
-        //printf("Error: %s\n", strerror(errno)); // DEBUGGING
+        printf("Change directory unsuccessful.\n");
+        printf("Error: %s\n", strerror(errno));
     }
     else
     {
-        //printf("Change directory successful.\n"); // DEBUGGING
+        printf("Change directory successful.\n");
     }
 }
 
@@ -112,7 +109,7 @@ void echoString(char *str)
 {
     char echo[COMMAND_LINE_MAX];
 
-    //Generate string of form "echo str"
+    // Generate string of form "echo str"
     sprintf(echo, "echo %s", str);
     system(echo);
 }
@@ -123,7 +120,6 @@ void echoString(char *str)
 void printPrompt()
 {
     char cwd[PROMPT_MAX];
-
     char hostname[HOSTNAME_MAX];
 
     gethostname(hostname, sizeof(hostname));
@@ -131,7 +127,6 @@ void printPrompt()
     printf("EECE315_$HELL<>%s@%s:", getenv("USER"), hostname);
     sprintf(cwd, "%s", getcwd(NULL, 0));
     printf(ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n$ ", cwd);
-
 
     fflush(stdout);
 }

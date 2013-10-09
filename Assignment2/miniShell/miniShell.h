@@ -13,7 +13,7 @@
 #include "lookupPath/lookupPath.h"
 #include "externalCommands/externalCommands.h"
 
-
+// Constants
 #define MAX_LINE_LEN    80
 #define MAX_ARGS    64
 #define MAX_ARG_LEN 16
@@ -28,19 +28,7 @@
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 
-
-//Data Structures
-/*
- *struct command_t{
- *    char *name;
- *    int argc;
- *    char *argv[MAX_ARGS];
- *    int runsInBackground;
- *    char *redirectFileName;
- *};
- */
-
-//Function Prototypes
+// Function Prototypes
 void printPrompt();
 int parsePath(char **);
 

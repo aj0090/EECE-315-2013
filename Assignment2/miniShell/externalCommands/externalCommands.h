@@ -1,7 +1,5 @@
-//Made by Byron Duenas
 #ifndef EXTERNALCOMMANDS_H
 #define EXTERNALCOMMANDS_H
-
 
 #include <stdio.h>
 #include <unistd.h>
@@ -10,8 +8,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+
 #include "../readCommand/readCommand.h"
 
+// Constants
 #define HOSTNAME_MAX 16
 #define PROMPT_MAX 256
 #define DIR_NAME_MAX 256
@@ -22,12 +22,11 @@
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-
+// Function Prototypes
 int isExternalCommand(struct command_t *current_command);
 void changeDirectory( char *dir);
 void printWorkingDirectory();
 void echoString( char *str);
 void printPrompt();
-
 
 #endif
