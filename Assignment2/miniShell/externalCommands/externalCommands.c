@@ -35,7 +35,12 @@ int isExternalCommand(struct command_t *current_command)
         echoString(current_command->argv[1]);
     }
     else
+    {
+        dup2(stdoutCopy, 1);
+        close(stdoutCopy);
         return 0;
+
+    }
 
     dup2(stdoutCopy, 1);
     close(stdoutCopy);
