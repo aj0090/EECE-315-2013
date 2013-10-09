@@ -35,8 +35,6 @@ int main(int argc, char *argv[])
     {
         printPrompt();
 
-        /*cd/pwd will call printPrompt()*/
-
         // Read the command line and parse it
         if (readCommand(&command) != 1)
         {
@@ -44,9 +42,9 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        if (!(command.name == NULL) && !isExternalCommand(&command))
+        // Ensure command is not handled by externalCommand
+        if (!isExternalCommand(&command))
         {
-
             // Exit the interactive shell if command is 'exit' or 'quit'
             if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0)
             {
@@ -70,27 +68,29 @@ int main(int argc, char *argv[])
                     close(fd);
                 }
 
-                printf("I am the child\n");
+                // DEBUGGING STATEMENTS
+                /*printf("I am the child\n");
                 for (i = 0; i < command.argc; i++)
                 {
                     printf("argument[%i]: %s\n", i, command.argv[i]);
                 }
-                printf("Path: %s\n", path);
+                printf("Path: %s\n", path);*/
 
                 path = lookupPath(command.name);
                 execv(path, command.argv);
 
                 // Print execv errors
-                printf("Error with execv %s\n", strerror(errno));
+                // printf("Error with execv %s\n", strerror(errno)); // DEBUGGING
+                printf("%s\n", strerror(errno));
                 status = 1;
                 exit(0);
             }
             else
             {
-                printf("I am the parent\n");
+                // printf("I am the parent\n"); // DEBUGGING
                 if (!runsInBackground(&command))
                 {
-                    printf("Parent will wait for child\n");
+                    // printf("Parent will wait for child\n"); // DEBUGGING
                     // Wait for children to terminate
                     wait(&status);
                 }
@@ -99,9 +99,9 @@ int main(int argc, char *argv[])
             // Free heap objects
             //free(path);
             command.name = NULL;
-            // do we need to free command?
+            // XXX do we need to free command?
 
-            printf("Post-fork\n");
+            // printf("Post-fork\n"); // DEBUGGING
         }
     }
 

@@ -19,7 +19,6 @@ char *lookupPath(char prog [])
         if (checkFileInDir(path, prog))
         {
             snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "%s/%s", path, prog);
-            /*snprintf(ret_buffer, sizeof ret_buffer, "%s/%s", path, prog);*/
             return ret_buffer;
         }
         path = strtok(NULL, ":");
