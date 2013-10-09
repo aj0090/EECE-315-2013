@@ -6,25 +6,20 @@
 #include <unistd.h>
 #include <string.h> // strsep(), etc.
 
-
-
 #define MAX_ARGS 64
 #define MAX_ARG_LENGTH 16
 #define MAX_LINE_LENGTH 80
-#define WHITESPACE " \n"
+//#define WHITESPACE " \n"
+#define WHITESPACE  " .,\t\n"
 #define SPACE " "
-
 
 struct command_t{
 	char *name;
-	int runsInBackground;
-
-	char *redirectFileName;
-
 	int argc;
 	char *argv[MAX_ARGS];
+	int runsInBackground;
+	char *redirectFileName;
 };
-
 
 const int runsInBackground(struct command_t *);
 

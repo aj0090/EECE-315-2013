@@ -8,14 +8,15 @@ char * lookupPath(char prog []) {
     /* Attempts to find prog in PATH.
        Returns the first path in PATH for prog. If prog is not found
        in any path in PATH, returns "FILENOTFOUND" */
-    char ret_buffer[80];
+    char *ret_buffer = (char *)malloc(MAX_LINE_LEN);
     char *paths = getenv("PATH");  // Get PATH environment variable
     char *path = strtok(paths, ":");
 
     while (path != NULL) {
         // This will return the path where the executable is first encountered; is this the behaviour we want?
         if (checkFileInDir(path, prog)) {
-            snprintf(ret_buffer, sizeof ret_buffer, "%s/%s", path, prog);
+            snprintf(ret_buffer, MAX_LINE_LEN*sizeof(char), "%s/%s", path, prog);
+            /*snprintf(ret_buffer, sizeof ret_buffer, "%s/%s", path, prog);*/
             return ret_buffer;
         }
         path = strtok(NULL, ":");

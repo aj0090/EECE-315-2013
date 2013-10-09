@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 
-#include "minishell.h"
+#include "miniShell.h"
 #include "readCommand/readCommand.h"
 #include "lookupPath/lookupPath.h"
 
@@ -13,8 +14,8 @@
 int main(int argc, char *argv[]) {
     int pid;
     int status;
-    /*char path[MAX_LINE_LEN];*/
     struct command_t command;
+    char *path;
 
     // Check that the program is run properly
     if (argc != 1) {
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    // Maintains the interactive miniShell
+    // Maintains the interactive shell
     while (TRUE) {
         /*printPrompt();*/
 
@@ -31,44 +32,51 @@ int main(int argc, char *argv[]) {
         // Read the command line and parse it
         readCommand(&command);
 
-        // Exit the interactive shell if command is 'exit' or 'quit'
-        if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0) {
-            printf("Shell exiting...\n");
-            exit(0);
-        }
+        if (!(command.name == NULL)) {
 
-        /*
-         *if (command.name == NULL) {
-         *    [>Report error<]
-         *    continue;
-         *}
-         */
-
-        /*Create a child process to execute the command*/
-        if ((pid = fork()) == 0) {
-            /*
-             *if (redirectsOutput(&command)) {
-             *    printf("Child will need to redirect\n");
-             *}
-             */
-            printf("I am the child\n");
-            /*printf("Path for '%s' is '%s'\n", command.name, lookupPath(command.name));*/
-            /*printf("arguments: %s", command.argv[1]);*/
-            execv(lookupPath(command.name), command.argv);
-            /*execv(command.name, command.argv);*/
-            status = 1;
-            exit(0);
-        } else {
-            printf("I am the parent\n");
-            if (!runsInBackground(&command)) {
-                printf("Parent will wait for child\n");
-                /*Wait for all children to terminate*/
-                wait(&status);
+            // Exit the interactive shell if command is 'exit' or 'quit'
+            if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0) {
+                printf("Shell exiting...\n");
+                exit(0);
             }
-        }
 
-        //free dynamic storage in command data structure here
-        printf("after fork\n");
+            // Create a child process to execute the command
+            if ((pid = fork()) == 0) {
+                /*
+                 *if (redirectsOutput(&command)) {
+                 *    printf("Child will need to redirect\n");
+                 *}
+                 */
+
+                printf("I am the child\n");
+                for (int i = 0; i < command.argc; i++) {
+                    printf("argument[%i]: %s\n", i, command.argv[i]);
+                }
+                printf("Path: %s\n", path);
+
+                path = lookupPath(command.name);
+                execv(path, command.argv);
+
+                // Print execv errors
+                printf("Error with execv %s\n", strerror(errno));
+                status = 1;
+                exit(0);
+            } else {
+                printf("I am the parent\n");
+                if (!runsInBackground(&command)) {
+                    printf("Parent will wait for child\n");
+                    // Wait for children to terminate
+                    wait(&status);
+                }
+            }
+
+            // Free heap objects
+            free(path);
+            command.name = NULL;
+            // do we need to free command?
+
+            printf("Post-fork\n");
+        }
     }
 
     printf("\n\nShell terminated\n");

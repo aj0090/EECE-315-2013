@@ -108,18 +108,20 @@ int readCommand(struct command_t *current_command)
 
 	// Read in an input string from stdin and then parse the command into the
 	// passed argument 'current_command'
-	printf("Please enter the requested command and arguments.\n");
-	if(parseCommand(fgets(input_buffer, MAX_LINE_LENGTH, stdin), current_command) != -1)
-	{
-		// Return 1 to signify successful read
-		checkAndSetRunsInBackground(current_command);
-		checkAndSetRedirect(current_command);
-		return 1;
-	}
+	fgets(input_buffer, MAX_LINE_LENGTH, stdin);
+    // Checking for null input
+    if(strcmp(input_buffer, "\n")){
+        if(parseCommand(input_buffer, current_command) != -1)
+        {
+            // Return 1 to signify successful read
+            checkAndSetRunsInBackground(current_command);
+            checkAndSetRedirect(current_command);
+            return 1;
+        }
+    }
 
 	// Return -1 to signify unsuccessful read
 	return -1;
-
 }
 
 // REQUIRES: A non-null input string, and a non-null command_t struct
@@ -129,10 +131,6 @@ int readCommand(struct command_t *current_command)
 // and name members according to those values
 int parseCommand(char *input_string, struct command_t *current_command)
 {
-	// Print to verify the input
-	printf("Your command:\n%s", input_string);
-
-
 	// Start the argument count 'argc' at 0 and allocate memory to the first array member
 	int argc = 0;
 	current_command->argv[argc] = (char *)malloc(MAX_ARG_LENGTH);
