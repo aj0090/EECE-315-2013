@@ -82,16 +82,8 @@ void changeDirectory(char *dir)
         }
     }
 
-    // Actually change to newDir and check if it's valid
-    if (chdir(newDir) < 0)
-    {
-        printf("Change directory unsuccessful.\n");
-        printf("Error: %s\n", strerror(errno));
-    }
-    else
-    {
-        printf("Change directory successful.\n");
-    }
+    // Change to newDir
+    chdir(newDir);
 }
 
 // REQUIRES: NONE
