@@ -9,8 +9,8 @@ char *lookupPath(char prog [])
     char *ret_buffer = (char *)malloc(MAX_LINE_LEN);
     char *paths = (char *)malloc(MAX_PATH_LEN);
 
-    // Get PATH environment variable
-    strcpy(paths, getenv("PATH"));
+    // Get PATH environment variable and local path for paths
+    snprintf(paths, MAX_PATH_LEN * sizeof(char), "%s:%s", getenv("PATH"), ".");
     char *path = strtok(paths, ":");
 
     while (path != NULL)
