@@ -1,5 +1,19 @@
 #include "miniShell.h"
 
+
+void free_command(struct command_t *command)
+{
+    int i;
+    // Free heap objects
+    free(command->name); //8 bytes
+    for (i = 0; i < command->argc; i++)
+    {
+        free(command->argv[i]);
+    }
+    free(command->redirectFileName); //8 bytes
+}
+
+
 // REQUIRES: NONE
 // MODIFIES: NONE
 // EFFECTS: Runs the miniShell
@@ -10,7 +24,6 @@ int main(int argc, char *argv[])
     char *path;
     int i, fd, readResult;
     struct command_t command;
-
 
     // Check that the program is run properly
     if (argc != 1)
@@ -87,25 +100,9 @@ int main(int argc, char *argv[])
 
         }
 
-        // Free heap objects
-        free(command.name); //8 bytes
-        for (i = 0; i < command.argc-1; i++)
-        {
-            free(command.argv[i]);
-
-        }
-        free(command.redirectFileName); //8 bytes
+        //free_command(&command);
     }
-
-
-    // Free heap objects
-    free(command.name); //8 bytes
-    for (i = 0; i < command.argc; i++)
-    {
-        free(command.argv[i]);
-
-    }
-    free(command.redirectFileName); //8 bytes
+    //free_command(&command);
 
     exit(0);
 }
