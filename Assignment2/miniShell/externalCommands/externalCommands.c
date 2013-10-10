@@ -6,6 +6,7 @@
 int isExternalCommand(struct command_t *current_command)
 {
     int fd, stdoutCopy;
+    int res = 1;
 
     // If redirection flag is set in command, redirect output
     if (redirectsOutput(current_command))
@@ -33,14 +34,15 @@ int isExternalCommand(struct command_t *current_command)
     }
     else
     {
-        dup2(stdoutCopy, 1);
-        close(stdoutCopy);
-        return 0;
+        res = 0;
     }
 
-    dup2(stdoutCopy, 1);
-    close(stdoutCopy);
-    return 1;
+    if (redirectsOutput(current_command))
+    {
+        dup2(stdoutCopy, 1);
+        close(stdoutCopy);
+    }
+    return res;
 }
 
 // REQUIRES: NONE
@@ -76,8 +78,10 @@ void changeDirectory(char *dir)
     pclose(temp);
 
     // Strip the new line at the end of the "pwd" output
-    for (i = 0; i < sizeof(newDir); i++) {
-        if (newDir[i] == '\0') {
+    for (i = 0; i < sizeof(newDir); i++)
+    {
+        if (newDir[i] == '\0')
+        {
             newDir[i - 1] = '\0';
         }
     }
