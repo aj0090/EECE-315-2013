@@ -7,9 +7,10 @@ int main(int argc, char *argv[])
 {
     int pid;
     int status;
-    struct command_t command;
     char *path;
     int i, fd, readResult;
+    struct command_t command;
+
 
     // Check that the program is run properly
     if (argc != 1)
@@ -22,7 +23,6 @@ int main(int argc, char *argv[])
     while (TRUE)
     {
         printPrompt();
-
         // Read the command line and parse it
         readResult = readCommand(&command);
         if (readResult == -1)
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
             if (strncmp(command.name, "exit", 4) == 0 || strncmp(command.name, "quit", 4) == 0)
             {
                 printf(ANSI_COLOR_YELLOW "Shell exiting..." ANSI_COLOR_RESET "\n");
-                exit(0);
+                break;
             }
 
             // If lookupPath returns FILENOTFOUND, inform the user
@@ -85,11 +85,27 @@ int main(int argc, char *argv[])
                 }
             }
 
-            // Free heap objects
-            command.name = NULL;
         }
+
+        // Free heap objects
+        free(command.name); //8 bytes
+        for (i = 0; i < command.argc-1; i++)
+        {
+            free(command.argv[i]);
+
+        }
+        free(command.redirectFileName); //8 bytes
     }
 
-    printf("\n\nShell terminated\n");
-    return 0;
+
+    // Free heap objects
+    free(command.name); //8 bytes
+    for (i = 0; i < command.argc; i++)
+    {
+        free(command.argv[i]);
+
+    }
+    free(command.redirectFileName); //8 bytes
+
+    exit(0);
 }

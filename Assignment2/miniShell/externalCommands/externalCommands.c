@@ -78,13 +78,7 @@ void changeDirectory(char *dir)
     pclose(temp);
 
     // Strip the new line at the end of the "pwd" output
-    for (i = 0; i < sizeof(newDir); i++)
-    {
-        if (newDir[i] == '\0')
-        {
-            newDir[i - 1] = '\0';
-        }
-    }
+    newDir[strlen(newDir) - 1] = '\0';
 
     // Change to newDir
     chdir(newDir);

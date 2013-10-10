@@ -152,7 +152,6 @@ int parseCommand(char *input_string, struct command_t *current_command)
     // Allocate memory to the 'name' member of the struct 'current_command' and then copy the first argument's string to it
     current_command->name = malloc(sizeof(current_command->argv[0]));
     strcpy(current_command->name, current_command->argv[0]);
-
     return 1;
 }
 
