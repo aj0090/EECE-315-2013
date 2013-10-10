@@ -111,12 +111,13 @@ void printPrompt()
 {
     char cwd[PROMPT_MAX];
     char hostname[HOSTNAME_MAX];
+    char *buffer = (char *)malloc(DIR_NAME_MAX);
 
     gethostname(hostname, sizeof(hostname));
 
     printf("EECE315_$HELL<>%s@%s:", getenv("USER"), hostname);
-    sprintf(cwd, "%s", getcwd(NULL, 0));
-    printf(ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n$ ", cwd);
+    printf(ANSI_COLOR_GREEN "%s" ANSI_COLOR_RESET "\n$ ", getcwd(buffer, DIR_NAME_MAX));
+    free(buffer);
 
     fflush(stdout);
 }
