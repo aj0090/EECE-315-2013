@@ -1,6 +1,16 @@
 import os
 import sys
-import pexpect
+
+try:
+    import pexpect
+except ImportError:
+    print """Run the following commands to install pexpect
+             wget http://pexpect.sourceforge.net/pexpect-2.3.tar.gz
+             tar xzf pexpect-2.3.tar.gz
+             cd pexpect-2.3
+             sudo python ./setup.py install"""
+    exit(1)
+
 import subprocess
 from time import sleep
 from tempfile import TemporaryFile

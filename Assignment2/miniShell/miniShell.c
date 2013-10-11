@@ -5,12 +5,12 @@ void free_command(struct command_t *command)
 {
     int i;
     // Free heap objects
-    free(command->name); //8 bytes
-    for (i = 0; i < command->argc; i++)
+    free(command->name);
+    for (i = 0; i <= command->argc; i++)
     {
         free(command->argv[i]);
     }
-    free(command->redirectFileName); //8 bytes
+    free(command->redirectFileName);
 }
 
 void sigintHandler()
@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     char *path;
     int i, fd, readResult;
     struct command_t command;
+    char *input_buffer;
 
     // Handle SIGINT (i.e., kill by Ctrl-C)
     signal(SIGINT, sigintHandler);
@@ -43,20 +44,25 @@ int main(int argc, char *argv[])
     // Maintains the interactive shell
     while (TRUE)
     {
+        //Print the prompt
         printf(ANSI_COLOR_RESET);
         printPrompt();
-        // Read the command line and parse it
         printf(ANSI_COLOR_CYAN);
-        readResult = readCommand(&command);
+
+        // Read the command line and parse it
+        input_buffer = (char *)malloc(MAX_LINE_LENGTH);
+        readResult = readCommand(input_buffer,  &command);
 
         if (readResult == -1)
         {
             printf(ANSI_COLOR_YELLOW "No executable command given." ANSI_COLOR_RESET "\n");
+            free(input_buffer); //NEED THIS
             continue;
         }
         else if (readResult == -2)
         {
             printf(ANSI_COLOR_YELLOW "Command name too long." ANSI_COLOR_RESET "\n");
+            free(input_buffer); //NEED THIS
             continue;
         }
 
@@ -76,6 +82,8 @@ int main(int argc, char *argv[])
             if (strncmp(path, "FILENOTFOUND", 12) == 0)
             {
                 printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the PATH. :("ANSI_COLOR_RESET"\n", command.name);
+                free(input_buffer);
+                free(path);
                 continue;
             }
 
@@ -108,12 +116,15 @@ int main(int argc, char *argv[])
                     wait(&status);
                 }
             }
+            free(path);
 
         }
 
         //free_command(&command);
+        free(input_buffer);
     }
     //free_command(&command);
+    free(input_buffer);
 
     printf(ANSI_COLOR_RESET);
     exit(0);

@@ -89,7 +89,9 @@ void changeDirectory(char *dir)
 // EFFECTS: Prints the current working directory
 void printWorkingDirectory()
 {
-    printf("%s\n", getcwd (NULL, 0));
+    char *buffer = (char *)malloc(DIR_NAME_MAX);
+    printf("%s\n", getcwd (buffer, DIR_NAME_MAX));
+    free(buffer);
 }
 
 // REQUIRES: NONE

@@ -35,7 +35,7 @@ int checkAndSetFileRedirection(struct command_t *);
 
 int deleteLastArgument(struct command_t *);
 
-int readCommand(struct command_t *);
+int readCommand(char *, struct command_t *);
 int parseCommand(char *, struct command_t *);
 void printCommand(struct command_t *);
 

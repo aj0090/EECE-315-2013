@@ -19,12 +19,14 @@ char *lookupPath(char prog [])
         if (checkFileInDir(path, prog))
         {
             snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "%s/%s", path, prog);
+            free(paths);
             return ret_buffer;
         }
         path = strtok(NULL, ":");
     }
 
     snprintf(ret_buffer, MAX_LINE_LEN * sizeof(char), "FILENOTFOUND");
+    free(paths);
     return ret_buffer;
 }
 
@@ -36,6 +38,7 @@ bool checkFileInDir(char *path, char *file)
     DIR *directory;
     struct dirent *dir_entry;
     directory = opendir(path);
+    bool res = false;
 
     // If directory exists, continuously read its contents. If the name of one of the contents matches file, return true.
     if (directory)
@@ -45,11 +48,12 @@ bool checkFileInDir(char *path, char *file)
         {
             if (!strcmp(file, dir_entry->d_name))
             {
-                return true;
+                res = true;
+                break;
             }
         }
         closedir(directory);
     }
 
-    return false;
+    return res;
 }
