@@ -1,18 +1,6 @@
 #include "miniShell.h"
 
 
-void free_command(struct command_t *command)
-{
-    int i;
-    // Free heap objects
-    free(command->name);
-    for (i = 0; i <= command->argc; i++)
-    {
-        free(command->argv[i]);
-    }
-    free(command->redirectFileName);
-}
-
 void sigintHandler()
 {
     printf(ANSI_COLOR_YELLOW "\nShell exiting..." ANSI_COLOR_RESET "\n");
@@ -119,11 +107,8 @@ int main(int argc, char *argv[])
             free(path);
 
         }
-
-        //free_command(&command);
         free(input_buffer);
     }
-    //free_command(&command);
     free(input_buffer);
 
     printf(ANSI_COLOR_RESET);

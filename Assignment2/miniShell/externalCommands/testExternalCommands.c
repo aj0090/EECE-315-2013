@@ -2,8 +2,9 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3){
-        fprintf(stderr,"Usage: test (folder you want to cd into) (folder you want to create)\n");
+    if (argc != 3)
+    {
+        fprintf(stderr, "Usage: test (folder you want to cd into) (folder you want to create)\n");
         return -1;
     }
 
