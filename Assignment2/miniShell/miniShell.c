@@ -13,6 +13,11 @@ void free_command(struct command_t *command)
     free(command->redirectFileName); //8 bytes
 }
 
+void sigintHandler()
+{
+    printf(ANSI_COLOR_YELLOW "\nShell exiting..." ANSI_COLOR_RESET "\n");
+    exit(0);
+}
 
 // REQUIRES: NONE
 // MODIFIES: NONE
@@ -25,6 +30,9 @@ int main(int argc, char *argv[])
     int i, fd, readResult;
     struct command_t command;
 
+    // Handle SIGINT (i.e., kill by Ctrl-C)
+    signal(SIGINT, sigintHandler);
+
     // Check that the program is run properly
     if (argc != 1)
     {
@@ -35,9 +43,12 @@ int main(int argc, char *argv[])
     // Maintains the interactive shell
     while (TRUE)
     {
+        printf(ANSI_COLOR_RESET);
         printPrompt();
         // Read the command line and parse it
+        printf(ANSI_COLOR_CYAN);
         readResult = readCommand(&command);
+
         if (readResult == -1)
         {
             printf(ANSI_COLOR_YELLOW "No executable command given." ANSI_COLOR_RESET "\n");
@@ -104,5 +115,6 @@ int main(int argc, char *argv[])
     }
     //free_command(&command);
 
+    printf(ANSI_COLOR_RESET);
     exit(0);
 }
