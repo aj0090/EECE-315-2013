@@ -1,0 +1,40 @@
+{
+    <insert_a_suppression_name_here>
+        Memcheck:Cond
+        fun:vfprintf
+        fun:printf
+        fun:printPrompt
+        fun:main
+}
+{
+    <insert_a_suppression_name_here>
+        Memcheck:Cond
+        fun:_IO_file_xsputn@@GLIBC_2.2.5
+        fun:vfprintf
+        fun:printf
+        fun:printPrompt
+        fun:main
+}
+{
+    <insert_a_suppression_name_here>
+        Memcheck:Cond
+        fun:_IO_file_xsputn@@GLIBC_2.2.5
+        fun:vfprintf
+        fun:printf
+        fun:printPrompt
+        fun:main
+}
+{
+    <insert_a_suppression_name_here>
+        Memcheck:Param
+        write(buf)
+        fun:__write_nocancel
+        fun:_IO_file_write@@GLIBC_2.2.5
+        fun:new_do_write
+        fun:_IO_do_write@@GLIBC_2.2.5
+        fun:_IO_file_xsputn@@GLIBC_2.2.5
+        fun:vfprintf
+        fun:printf
+        fun:printPrompt
+        fun:main
+}
