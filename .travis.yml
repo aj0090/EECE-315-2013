@@ -18,5 +18,12 @@ script:
 after_success:
   - sudo apt-get -qq update
   - sudo apt-get -qq install valgrind
-#  - valgrind --leak-check=full --show-reachable=yes --track-origins=yes --suppressions=../../travis-ci.supp ./miniShell
   - (echo "ls -la" && echo "cd .." && echo "pwd" && echo "exit") | valgrind --leak-check=full --show-reachable=yes --track-origins=yes --suppressions=../../travis-ci.supp ./miniShell
+
+# whitelist
+branches:
+    only:
+        - stable
+
+#notifications:
+    #email: false
