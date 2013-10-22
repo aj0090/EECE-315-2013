@@ -10,6 +10,7 @@
 // Constants
 #define MAX_LINE_LEN    80
 #define MAX_PATH_LEN    1000
+#define NOT_FOUND       "FILENOTFOUND"
 
 // Function Prototypes
 bool checkFileInDir(char *path, char *file);
