@@ -1,0 +1,29 @@
+language: python
+
+python:
+  - "2.7"
+
+before_install:
+
+# command to install dependencies
+install:
+  - "pip install pexpect --use-mirrors"
+
+# command to run tests
+script:
+  - cd Assignment2/miniShell/
+  - make
+  - python func_test.py
+
+after_success:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install valgrind
+  - (echo "ls -la" && echo "cd .." && echo "pwd" && echo "exit") | valgrind --leak-check=full --show-reachable=yes --track-origins=yes --suppressions=../../travis-ci.supp ./miniShell
+
+# whitelist
+branches:
+    only:
+        - stable
+
+#notifications:
+    #email: false
