@@ -64,10 +64,10 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            // If lookupPath returns FILENOTFOUND, inform the user
+            // If lookupPath returns NOT_FOUND, inform the user
             path = lookupPath(command.name);
 
-            if (strncmp(path, "FILENOTFOUND", 12) == 0)
+            if (strncmp(path, NOT_FOUND, 12) == 0)
             {
                 printf(ANSI_COLOR_RED"ERROR: We couldn't find `%s` in the PATH. :("ANSI_COLOR_RESET"\n", command.name);
                 free(input_buffer);
