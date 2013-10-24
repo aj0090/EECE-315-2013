@@ -9,6 +9,8 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 
+from get_constants import get_constants
+
 # XXX obviously change this before submitting
 ASSETS_DIR = "/home/hamza/Dropbox/_SELF/Panda3D/"
 
@@ -20,9 +22,8 @@ class PhilosophicalDiners(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
-
-        self.context, self.socket, self.num_phil = self._create_socket_context(
-        )
+        self.p_constants = get_constants()
+        self.context, self.socket = self._create_socket_context()
 
         self.models = {}
         # Load environment (really just a plane)
@@ -58,8 +59,8 @@ class PhilosophicalDiners(ShowBase):
 
     def _load_forks(self):
         """Load and place forks"""
-        self.forks = [0 for i in xrange(self.num_phil)]
-        for i in xrange(self.num_phil):
+        self.forks = [0 for i in xrange(self.p_constants["NPHILOSOPHERS"])]
+        for i in xrange(self.p_constants["NPHILOSOPHERS"]):
             x, y, angle = self._get_fork_coord(i)
             self.forks[i] = self.loader.loadModel(ASSETS_DIR + "fork")
             self.forks[i].reparentTo(self.render)
@@ -73,7 +74,7 @@ class PhilosophicalDiners(ShowBase):
         """
         diameter = pi * 3.4  # This number is a guess
                           # Take care to change this if table-size changes
-        angle = num * 2 * pi / self.num_phil
+        angle = num * 2 * pi / self.p_constants["NPHILOSOPHERS"]
         return (diameter / 2 * cos(angle), diameter / 2 * sin(angle), angle)
 
     def spin_camera(self, task):
@@ -90,29 +91,15 @@ class PhilosophicalDiners(ShowBase):
         """Creates context, socket and returns them"""
         # Find upper bound on ACTIME from constants and set timeout to double
         # that
-        with open("constants.h", "r") as f:
-            found = 0
-            lines = f.read().split("\n")
-            for line in lines:
-                if "ACTIME" in line:
-                    timeout = int(2000 * float(line.split(" ")[-1].strip("s")))
-                    found += 1
-                elif "NPHILOSOPHERS" in line:
-                    num_phil = int(line.strip().split(" ")[-1])
-                    found += 1
-                if found == 2:
-                    break
-            else:
-                raise Exception(
-                    "Could not find ACTIME and/or NPHILOSOPHERS bound in constants.h")
+        timeout = int(2000 * self.p_constants["ACTIME_UPPER"])
 
         context = zmq.Context()  # Create Context
         socket = context.socket(zmq.REQ)  # Create socket
         # Connect to dining philosophers
-        socket.connect("tcp://127.0.0.101:9123")
+        socket.connect(self.p_constants["SERV_ADDR"])
         socket.RCVTIMEO = timeout  # Set timeout
 
-        return context, socket, num_phil
+        return context, socket
 
 
 def main():
