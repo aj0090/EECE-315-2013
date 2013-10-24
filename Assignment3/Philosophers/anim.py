@@ -12,11 +12,8 @@ from panda3d.core import TextureStage, Texture
 
 from get_constants import get_constants
 
-# XXX obviously change this before submitting
-ASSETS_DIR = "assets/"
 
-# TODO:
-# * scale and pos hard-coded numbers to constants
+ASSETS_DIR = "assets/"
 
 
 class PhilosophicalDiners(ShowBase):
@@ -44,8 +41,39 @@ class PhilosophicalDiners(ShowBase):
         self.black_tex = self.loader.loadTexture(ASSETS_DIR + "black.png")
         self.models["house"].setTexture(self.black_tex)
 
+        # Start sim
+        self.rnum = 0
+        self.philos = subprocess.Popen("./philos", shell=True)
+
         # Tasks
         self.taskMgr.add(self.spin_camera, "spin_camera")
+        self.taskMgr.add(self._comm, "comm")
+
+    def _comm(self, task):
+        """Communicate with sim
+
+        This is a blocking function
+        """
+        if True:#not int(task.time*100) % 2:
+            self.socket.send("Hello")  # Send generic request
+            # Get message, if wait longer than timeout, quit
+            try:
+                message = self.socket.recv()
+            except zmq.error.Again:
+                print("Looks like everyone is done!")
+                exit(0)
+
+            print "Received reply ", self.rnum, "[", message, "]"
+            self._anim_fork(int(message[0]), int(message[2]))
+
+
+            self.rnum += 1
+        print task.time
+        return Task.cont
+
+    def _anim_fork(self, fork_num, fork_pos):
+        curr_Z = self.forks[fork_num].getZ()
+        self.forks[fork_num].setZ(curr_Z + 2 if fork_pos == 1 else curr_Z - 2)
 
     def _load_model(self, name, **kwargs):
         """Load name.egg as name as name in self.models
@@ -89,12 +117,11 @@ class PhilosophicalDiners(ShowBase):
 
     def spin_camera(self, task):
         """Spin the camera around the table"""
-        angleDegrees = task.time * 6.0
+        angleDegrees = 0#task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(
             20 * sin(angleRadians), -20.0 * cos(angleRadians), 12)
         self.camera.setHpr(angleDegrees, -30, 0)
-        # print self.camera.getHpr()
         return Task.cont
 
     def _create_socket_context(self):
@@ -111,24 +138,6 @@ class PhilosophicalDiners(ShowBase):
 
         return context, socket
 
-
-def main():
-    context, socket = create_socket_context()
-    philos = subprocess.Popen("./philos", shell=True)
-
-    rnum = 0
-    while True:
-        socket.send("Hello")  # Send generic request
-        # Get message, if wait longer than timeout, quit
-        try:
-            message = socket.recv()
-        except zmq.error.Again:
-            print("Looks like everyone is done!")
-            break
-
-        print "Received reply ", rnum, "[", message, "]"
-
-        rnum += 1
 
 
 if __name__ == '__main__':
