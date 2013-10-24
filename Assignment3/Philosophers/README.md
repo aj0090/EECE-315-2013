@@ -1,30 +1,12 @@
+Quick Start
+===========
+* Run ```./install.sh``` to install ZeroMQ dependencies (Debian-based OSes only).
+* Install the Panda3D SDK for your respective OS.
+* Run ```./make.py -n```. This generates ```constants.h``` and ```make```s the threaded dining philosophers simulation.
+* Run ```./anim.py```. This will start the simulation as well as the display.
+
 Dependencies
 ============
 * ZeroMQ (C and Python bindings; czmq, pyzmq)
-```
-    # Install ZeroMQ
-    sudo apt-get install libtool autoconf automake uuid-dev build-essential
-    cd /tmp
-    wget http://download.zeromq.org/zeromq-4.0.1.tar.gz
-    tar zxvf zeromq-4.0.1.tar.gz && cd zeromq-4.0.1
-    ./configure
-    make
-    sudo make install
-    sudo ldconfig
-
-    # Install C bindings
-    cd /tmp
-    wget http://download.zeromq.org/czmq-2.0.2.tar.gz
-    tar xzf czmq-2.0.2.tar.gz
-    cd czmq-2.0.2
-    ./configure
-    make
-    sudo make install
-    sudo ldconfig
-
-    # Install Python bindings
-    sudo apt-get install python-setuptools
-    sudo easy_install-2.7 pip
-    sudo pip-2.7 install pyzmq
-```
+    * ```$ ./install.sh```
 * Panda3D SDK (Grab the appropriate installer [from here](https://www.panda3d.org/download.php?platform=ubuntu&version=1.8.1&sdk))
