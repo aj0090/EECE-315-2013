@@ -10,10 +10,10 @@ from direct.task import Task
 from direct.actor.Actor import Actor
 from panda3d.core import TextureStage, Texture
 
-from .get_constants import get_constants
+from get_constants import get_constants
 
 # XXX obviously change this before submitting
-ASSETS_DIR = "/home/hamza/Dropbox/_SELF/Panda3D/"
+ASSETS_DIR = "assets/"
 
 # TODO:
 # * scale and pos hard-coded numbers to constants
@@ -92,7 +92,7 @@ class PhilosophicalDiners(ShowBase):
         angleDegrees = task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(
-            22 * sin(angleRadians), -22.0 * cos(angleRadians), 12)
+            20 * sin(angleRadians), -20.0 * cos(angleRadians), 12)
         self.camera.setHpr(angleDegrees, -30, 0)
         # print self.camera.getHpr()
         return Task.cont
