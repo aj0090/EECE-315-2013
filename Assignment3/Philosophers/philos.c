@@ -1,3 +1,5 @@
+/* Message format: "{Fork number}{Philosopher Number}{Picking up/Putting Down (1/0)}" */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,13 +25,15 @@ void pickup_forks(int n);
 typedef struct fork
 {
     pthread_mutex_t lock;
-    void *sock;
 } frk;
 
 
 //Initialize threads and forks
 pthread_t p[NPHILOSOPHERS];
 frk f[NPHILOSOPHERS];
+
+void *sock;
+pthread_mutex_t sock_lock;
 
 
 int main ( void )
@@ -38,7 +42,7 @@ int main ( void )
 
     // Set up socket to talk to anim.py
     void *context = zmq_ctx_new();
-    void *sock  = zmq_socket(context, ZMQ_REP);
+    sock  = zmq_socket(context, ZMQ_REP);
     int rc = zmq_bind(sock, SERV_ADDR);
     assert (rc == 0); // assert that bind was successful
 
@@ -46,8 +50,8 @@ int main ( void )
     for (i = 0; i < NPHILOSOPHERS; ++i)
     {
         pthread_mutex_init(&f[i].lock, NULL); // initialize mutex
-        f[i].sock = sock; // provide pointer to socket
     }
+    pthread_mutex_init(&sock_lock, NULL);
 
     //Create threads, join threads, and then destroy mutexes before quitting
     for (i = 0; i < NPHILOSOPHERS; ++i)
@@ -62,6 +66,7 @@ int main ( void )
     {
         pthread_mutex_destroy(&f[i].lock);
     }
+    pthread_mutex_destroy(&sock_lock);
 
     return 0;
 }
@@ -109,22 +114,57 @@ void pickup_forks(int n)
 
 void getLeftFork(int n)
 {
+    char buffer[10];
+    char msg[3];
+    sprintf(msg, "%d%d1", leftfork(n), n);
+
     if (VERBOSE)printf("\nI, Philosopher %d, am attempting to grab my left fork.", n);
     pthread_mutex_lock(&f[leftfork(n)].lock);
+
+    pthread_mutex_lock(&sock_lock);
+    zmq_recv(sock, buffer, 10, 0);
+    zmq_send(sock, msg, 3, 0);
+    pthread_mutex_unlock(&sock_lock);
+
     if (VERBOSE)printf("\nI, Philosopher %d, have grabbed my left fork.", n);
 }
 
 void getRightFork(int n)
 {
+    char buffer[10];
+    char msg[3];
+    sprintf(msg, "%d%d1", rightfork(n), n);
+
     if (VERBOSE)printf("\nI, Philosopher %d, am attempting to grab my right fork.", n);
     pthread_mutex_lock(&f[rightfork(n)].lock);
+
+    pthread_mutex_lock(&sock_lock);
+    zmq_recv(sock, buffer, 10, 0);
+    zmq_send(sock, msg, 3, 0);
+    pthread_mutex_unlock(&sock_lock);
+
     if (VERBOSE)printf("\nI, Philosopher %d, have grabbed my right fork.", n);
 }
 
 void return_forks(int n, int mealsEaten)
 {
+    char buffer[10];
+    char msg[3];
+
+    pthread_mutex_lock(&sock_lock);
+    sprintf(msg, "%d%d0", leftfork(n), n);
+    zmq_recv(sock, buffer, 10, 0);
+    zmq_send(sock, msg, 3, 0);
     pthread_mutex_unlock(&f[leftfork(n)].lock);
+
+
+    sprintf(msg, "%d%d0", rightfork(n), n);
+    zmq_recv(sock, buffer, 10, 0);
+    zmq_send(sock, msg, 3, 0);
     pthread_mutex_unlock(&f[rightfork(n)].lock);
+    pthread_mutex_unlock(&sock_lock);
+
+
     if (VERBOSE)printf("\nI, Philosopher %d, am finished eating meal %d.", n, mealsEaten);
 }
 
