@@ -21,35 +21,48 @@ class PhilosophicalDiners(ShowBase):
         self.context, self.socket, self.num_phil = self._create_socket_context(
         )
 
+        self.models = {}
         # Load environment (really just a plane)
-        self.environ = self.loader.loadModel(ASSETS_DIR + "house")
-        self.environ.reparentTo(self.render)
-        self.environ.setScale(25, 25, 25)
-
+        self._load_model("house", scale=[25, 25, 25])
         # Load the "table"
-        self.table_model = self.loader.loadModel(ASSETS_DIR + "table")
-        self.table_model.reparentTo(self.render)
-        self.table_model.setScale(7, 7, 7)
-        self.table_model.setPos(0, 0, 1)
-
+        self._load_model("table", scale=[7, 7, 7], pos=[0, 0, 1])
         # Load and place forks
-        self.forks = [0 for i in xrange(self.num_phil)]
-        for i in xrange(self.num_phil):
-            self.forks[i] = self.loader.loadModel(ASSETS_DIR + "fork")
-            self.forks[i].reparentTo(self.render)
-            x, y, angle = self._get_fork_coord(i)
-            print angle
-            self.forks[i].setScale(5, 5, 5)
-            self.forks[i].setPos(x, y, 1.2)
-            self.forks[i].setH(self.forks[i], angle * 180 / pi + 90)
+        self._load_forks()
 
         # Apply textures to models
         self.brown_tex = self.loader.loadTexture(ASSETS_DIR + "brown.png")
-        self.table_model.setTexture(self.brown_tex)
+        self.models["table"].setTexture(self.brown_tex)
         self.black_tex = self.loader.loadTexture(ASSETS_DIR + "black.png")
-        self.environ.setTexture(self.black_tex)
+        self.models["house"].setTexture(self.black_tex)
 
         self.taskMgr.add(self.spin_camera, "spin_camera")
+
+    def _load_model(self, name, **kwargs):
+        self.models[name] = self.loader.loadModel(ASSETS_DIR + name)
+        self.models[name].reparentTo(self.render)
+        if kwargs.get("scale"):
+            assert len(kwargs.get("scale")) == 3
+            assert isinstance(kwargs.get("scale"), list)
+            self.models[name].setScale(*kwargs.get("scale"))
+        if kwargs.get("pos"):
+            assert len(kwargs.get("pos")) == 3
+            assert isinstance(kwargs.get("pos"), list)
+            self.models[name].setPos(*kwargs.get("pos"))
+        if kwargs.get("hpr"):
+            assert len(kwargs.get("hpr")) == 3
+            assert isinstance(kwargs.get("hpr"), list)
+            self.models[name].setHpr(*kwargs.get("hpr"))
+
+    def _load_forks(self):
+        """Load and place forks"""
+        self.forks = [0 for i in xrange(self.num_phil)]
+        for i in xrange(self.num_phil):
+            x, y, angle = self._get_fork_coord(i)
+            self.forks[i] = self.loader.loadModel(ASSETS_DIR + "fork")
+            self.forks[i].reparentTo(self.render)
+            self.forks[i].setScale(5, 5, 5)
+            self.forks[i].setPos(x, y, 1.2)
+            self.forks[i].setH(self.forks[i], angle * 180 / pi + 90)
 
     def _get_fork_coord(self, num):
         """Do mathemagics to get cartesian coordinates of a fork by its number
