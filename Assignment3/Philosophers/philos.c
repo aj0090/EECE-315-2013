@@ -6,13 +6,8 @@
 #include <string.h>
 #include <assert.h>
 #include <zmq.h>
+#include "constants.h"
 
-//Constants
-#define ACTIME (random() % 2000000 + 1000000) // 1s < ACTIME < 3s
-#define NPHILOSOPHERS 3
-#define NMEALS 2
-#define VERBOSE true
-#define SERV_ADDR "tcp://127.0.0.101:9123"
 
 //Function prototypes
 void *philosopher(int n);
