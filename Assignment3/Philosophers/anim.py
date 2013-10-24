@@ -26,6 +26,7 @@ class PhilosophicalDiners(ShowBase):
         self.table_model.setScale(5, 5, 5)
         self.table_model.setPos(0, 0, 10)
 
+        # http://archive3d.net/?a=download&id=af4c5708
         self.fork_model = self.loader.loadModel(ASSETS_DIR + "fork")
         self.fork_model.reparentTo(self.render)
         self.fork_model.setScale(5, 5, 5)
