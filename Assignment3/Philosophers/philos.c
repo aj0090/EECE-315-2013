@@ -3,12 +3,16 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <string.h>
+#include <assert.h>
+#include <zmq.h>
 
 //Constants
 #define ACTIME (random() % 2000000 + 1000000) // 1s < ACTIME < 3s
-#define NPHILOSOPHERS 5
+#define NPHILOSOPHERS 3
 #define NMEALS 2
 #define VERBOSE true
+#define SERV_ADDR "tcp://127.0.0.101:9123"
 
 //Function prototypes
 void *philosopher(int n);
@@ -24,6 +28,7 @@ void pickup_forks(int n);
 typedef struct fork
 {
     pthread_mutex_t lock;
+    void *sock;
 } frk;
 
 
@@ -36,10 +41,17 @@ int main ( void )
 {
     int i;
 
+    // Set up socket to talk to anim.py
+    void *context = zmq_ctx_new();
+    void *sock  = zmq_socket(context, ZMQ_REP);
+    int rc = zmq_bind(sock, SERV_ADDR);
+    assert (rc == 0); // assert that bind was successful
+
     //Set up fork structs
     for (i = 0; i < NPHILOSOPHERS; ++i)
     {
-        pthread_mutex_init(&f[i].lock, NULL);
+        pthread_mutex_init(&f[i].lock, NULL); // initialize mutex
+        f[i].sock = sock; // provide pointer to socket
     }
 
     //Create threads, join threads, and then destroy mutexes before quitting
