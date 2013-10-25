@@ -4,6 +4,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <math.h>
+#include <time.h>
 
 
 #define NUM_COL_THREADS 3
@@ -19,6 +20,8 @@
 
 int testSudokuString(char *);
 void generateSudokuPuzzle(int);
+int **rotateArray(int**);
+void swapRows(int***);
 
 
 typedef struct NumberArray{
@@ -38,6 +41,7 @@ void initializeArrays(NumberArray *, NumberArray *, NumberArray *);
 void freeNumberArrays(NumberArray *, NumberArray *, NumberArray *);
 
 int **decodeSudokuString(char *);
+void printSudokuPuzzle(int **);
 
 int max(int, int);
 
@@ -46,6 +50,7 @@ int max(int, int);
 
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
 
 	char correct_sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
 
@@ -71,6 +76,7 @@ int testSudokuString(char *sudokustring)
 
 	// Decode the string into a 9x9 array
 	sudokuarray = decodeSudokuString(sudokustring);
+	printSudokuPuzzle(sudokuarray);
 
 
 	// Declare/Initialize the structs based on the number of threads for each one
@@ -118,26 +124,74 @@ int testSudokuString(char *sudokustring)
 
 //EFFECTS: Outputs a Sudoku Puzzle with "count" values filled in
 void generateSudokuPuzzle(int count) {
-	char sudokustring[] = "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	int usedArray[81];
+	char sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
+	int usedArray[9][9];
+	int i, j, cursor1, cursor2;
+	int **sudokuarray;
 
-	memset(usedArray, 0, 81 * sizeof(usedArray[0]));
+	memset(usedArray, 0, 9 * sizeof(usedArray[0]));
 
-	int i, j, cursor, correct;
-	for(i=0; i<count; i++) {
+	sudokuarray = decodeSudokuString(sudokustring);
+	if (VERBOSE) printSudokuPuzzle(sudokuarray);
 
-		correct = 0;
-		
+	for (i = 0; i < (rand() % count); i ++) {
+
+		swapRows(&sudokuarray);
+		if (VERBOSE) printSudokuPuzzle(sudokuarray);
+		sudokuarray = rotateArray(sudokuarray);
+		if (VERBOSE) printSudokuPuzzle(sudokuarray);
+	}
+
+	int correct;
+	for(i=0; i< (81-count); i++) {
+
 		do {
-			cursor = rand() % 81;		
-		} while (usedArray[cursor]);
+			cursor1 = rand() % 9;
+			cursor2 = rand() % 9;
+		} while (usedArray[cursor1][cursor2]);
 
-		usedArray[cursor] = 1;
+		usedArray[cursor1][cursor2] = 1;
 
-		do {
-			sudokustring[cursor] = (char) (((int)'0') + (rand() % 9 + 1));
-			correct = testSudokuString(sudokustring);
-		} while (!(correct == 1));		
+		sudokuarray[cursor1][cursor2] = 0;
+	}
+
+	printSudokuPuzzle(sudokuarray);
+	for(i = 0; i < 9; i++)
+		free(sudokuarray[i]);
+	free(sudokuarray);
+}
+
+int **rotateArray(int **array)
+{
+	int **rotatedarray, i, j;
+
+	rotatedarray = malloc(sizeof(int*) * 9);
+	for(i = 0; i < 9; i++)
+		rotatedarray[i] = malloc(sizeof(int) * 9);
+
+	for(i=0; i<9; i++) {
+   		for(j=0; j<9; j++) {
+        		rotatedarray[i][j] = array[9-1-j][i];
+    		}
+	}
+
+	for(i = 0; i < 9; i++)
+		free(array[i]);
+	free(array);
+
+	return rotatedarray;
+}
+
+void swapRows(int ***array)
+{
+	int * tempLine, cursor1, cursor2, i;
+
+	for(i = 0; i < 9; i=i+3) {
+		cursor1 = rand() % 3;
+		cursor2 = rand() % 3;
+		tempLine = (*array)[i+cursor1];
+		(*array)[i+cursor1] = (*array)[i+cursor2];
+		(*array)[i+cursor2] = tempLine;
 	}
 }
 
@@ -248,7 +302,9 @@ void *isValid(void *arg)
 		for(j = 0; j < SUDOKU_DEPTH; j++)
 		{
 			// If element has been seen before in the 9-element array
-			if(numbersFound[testNumberArray->elements[i][j] - 1] == 1 && testNumberArray->elements[i][j] >= 1 && testNumberArray->elements[i][j] <= 9)
+			if(numbersFound[testNumberArray->elements[i][j] - 1] == 1
+				&& testNumberArray->elements[i][j] >= 1
+				&& testNumberArray->elements[i][j] <= 9)
 			{
 				testNumberArray->isValid = 0;
 				if(VERBOSE) printf("Array not valid! The duplicate is %d\n", testNumberArray->elements[i][j]);
@@ -418,12 +474,23 @@ int **decodeSudokuString(char *sudokustring)
 		sudokuarray[i] = malloc(sizeof(int) * 9);
 
 	for(i = 0; i < 9; i++){
+		for(j = 0; j < 9; j++){
+			// Correct ASCII to integer with 0x30
+			sudokuarray[i][j] = sudokustring[i * 9 + j] - 0x30;	
+		}	
+	}
+	return sudokuarray;
+}
+
+void printSudokuPuzzle(int ** sudokuarray)
+{
+	int i, j;
+
+	for(i = 0; i < 9; i++){
 		// Formatting to make it look nice
 		if(i == 3 || i == 6)
 			printf("---------------------\n");
 		for(j = 0; j < 9; j++){
-			// Correct ASCII to integer with 0x30
-			sudokuarray[i][j] = sudokustring[i * 9 + j] - 0x30;	
 			printf("%d ", sudokuarray[i][j]);
 			// More formatting
 			if(j == 2 || j == 5)
@@ -431,7 +498,9 @@ int **decodeSudokuString(char *sudokustring)
 		}	
 		printf("\n");
 	}
-	return sudokuarray;
+	printf("\n");
+	printf("\n");
+	printf("\n");
 }
 
 // REQUIRES: Two valid integers
