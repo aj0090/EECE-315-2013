@@ -47,9 +47,9 @@ int max(int, int);
 int main(int argc, char *argv[])
 {
 
-	char correct_sudokustring[81] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
+	char correct_sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
 
-	char incorrect_sudokustring[81] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
+	char incorrect_sudokustring[] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
 
 
 	printf("Result: %d\n", testSudokuString(correct_sudokustring));
@@ -60,13 +60,13 @@ int main(int argc, char *argv[])
 // REQUIRES: sudokustring only comprises of characters 0 <= x <= 9
 // MODIFIES: none
 // EFFECTS: Tests the validity of a sudoku string. If the sudokustring is a valid sudoku solution, returns 1. Else, returns 0.
-int testSudokuString(char *sudokustring)
+int testSudokuString(char sudokustring[])
 {
 	int **sudokuarray;
 
 	// Return -1 if the length of the input string isn't exactly 81.
 	if(strlen(sudokustring) != 81){
-		printf("Invalid input size.\n");
+		printf("Invalid input size %d.\n", strlen(sudokustring));
 		return -1;
 	}
 
