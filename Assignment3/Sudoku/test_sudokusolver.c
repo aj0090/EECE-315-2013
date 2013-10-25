@@ -51,16 +51,15 @@ int main(int argc, char *argv[])
 
 	char incorrect_sudokustring[] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
 
-
 	printf("Result: %d\n", testSudokuString(correct_sudokustring));
-
+	generateSudokuPuzzle(32);
 
 }
 
 // REQUIRES: sudokustring only comprises of characters 0 <= x <= 9
 // MODIFIES: none
 // EFFECTS: Tests the validity of a sudoku string. If the sudokustring is a valid sudoku solution, returns 1. Else, returns 0.
-int testSudokuString(char sudokustring[])
+int testSudokuString(char *sudokustring)
 {
 	int **sudokuarray;
 
@@ -119,7 +118,17 @@ int testSudokuString(char sudokustring[])
 
 //EFFECTS: Outputs a Sudoku Puzzle with "count" values filled in
 void generateSudokuPuzzle(int count) {
-
+	char sudokustring[] = "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	
+	int i, cursor, correct;
+	for(i=0; i<count; i++) {
+		correct = 0;
+		cursor = rand() % 81;
+		do {
+			sudokustring[cursor] = (char) (((int)'0') + (rand() % 9 + 1));
+			correct = testSudokuString(sudokustring);
+		} while (correct == 0);		
+	}
 }
 
 // REQUIRES: Fully initialized/valid NumberArrays, defined NUM_ROW_THREADS, NUM_COL_THREADS, NUM_BLOCK_THREADS
