@@ -332,7 +332,6 @@ int *copyOfBlock(int **sudokuarray, int blocknumber)
 		if(VERBOSE) printf("\n");
 	}
 	if(VERBOSE) printf("\n");
-
 	return temp;
 }
 
