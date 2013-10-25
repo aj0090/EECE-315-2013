@@ -18,6 +18,7 @@
 
 
 int testSudokuString(char *);
+void generateSudokuPuzzle(int);
 
 
 typedef struct NumberArray{
@@ -114,6 +115,11 @@ int testSudokuString(char *sudokustring)
 	free(sudokuarray);
 	
 	return result;
+}
+
+//EFFECTS: Outputs a Sudoku Puzzle with "count" values filled in
+void generateSudokuPuzzle(int count) {
+
 }
 
 // REQUIRES: Fully initialized/valid NumberArrays, defined NUM_ROW_THREADS, NUM_COL_THREADS, NUM_BLOCK_THREADS
