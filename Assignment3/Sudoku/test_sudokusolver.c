@@ -119,11 +119,21 @@ int testSudokuString(char *sudokustring)
 //EFFECTS: Outputs a Sudoku Puzzle with "count" values filled in
 void generateSudokuPuzzle(int count) {
 	char sudokustring[] = "000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	
-	int i, cursor, correct;
+	int usedArray[81];
+
+	memset(usedArray, 0, 81 * sizeof(usedArray[0]));
+
+	int i, j, cursor, correct;
 	for(i=0; i<count; i++) {
+
 		correct = 0;
-		cursor = rand() % 81;
+		
+		do {
+			cursor = rand() % 81;		
+		} while (usedArray[cursor]);
+
+		usedArray[cursor] = 1;
+
 		do {
 			sudokustring[cursor] = (char) (((int)'0') + (rand() % 9 + 1));
 			correct = testSudokuString(sudokustring);
