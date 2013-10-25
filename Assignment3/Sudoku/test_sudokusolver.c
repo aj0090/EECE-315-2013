@@ -137,7 +137,7 @@ void generateSudokuPuzzle(int count) {
 		do {
 			sudokustring[cursor] = (char) (((int)'0') + (rand() % 9 + 1));
 			correct = testSudokuString(sudokustring);
-		} while (correct == 0);		
+		} while (!(correct == 1));		
 	}
 }
 
@@ -214,9 +214,9 @@ int testNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numberar
 			}
 		}
 		if(i < NUM_BLOCK_THREADS){
-			while(column_numberarrays[i].isTested == 0)
+			while(block_numberarrays[i].isTested == 0)
 			;
-			if(column_numberarrays[i].isValid == 0){
+			if(block_numberarrays[i].isValid == 0){
 				isValid = 0;
 				break;
 			}
@@ -244,13 +244,14 @@ void *isValid(void *arg)
 	{
 		// Keep track of 'seen' elements within the 9-element array
 		int numbersFound[SUDOKU_DEPTH] = {0};
+		memset(numbersFound, 0, SUDOKU_DEPTH * sizeof(numbersFound[0]));
 		for(j = 0; j < SUDOKU_DEPTH; j++)
 		{
 			// If element has been seen before in the 9-element array
 			if(numbersFound[testNumberArray->elements[i][j] - 1] == 1 && testNumberArray->elements[i][j] >= 1 && testNumberArray->elements[i][j] <= 9)
 			{
 				testNumberArray->isValid = 0;
-				if(VERBOSE) printf("Array not valid!\n");
+				if(VERBOSE) printf("Array not valid! The duplicate is %d\n", testNumberArray->elements[i][j]);
 				break;
 			}
 			// Element has not been seen
@@ -331,6 +332,7 @@ int *copyOfBlock(int **sudokuarray, int blocknumber)
 		if(VERBOSE) printf("\n");
 	}
 	if(VERBOSE) printf("\n");
+
 	return temp;
 }
 
