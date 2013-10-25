@@ -10,12 +10,18 @@
 #define NUM_COL_THREADS 3
 #define NUM_ROW_THREADS 3
 #define NUM_BLOCK_THREADS 3
+#define BEGINNER 64
+#define EASY 48
+#define MEDIUM 36
+#define HARD 24
+#define VERY_HARD 17
 
 
 #define SUDOKU_DEPTH 9
 
-// Define VERBOSE to be 1 if you awnt all the debugging outputs
+// Define VERBOSE to be 1 if you want all the debugging outputs
 #define VERBOSE 0
+#
 
 
 int testSudokuString(char *);
@@ -57,9 +63,30 @@ int main(int argc, char *argv[])
 	char incorrect_sudokustring[] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
 
 	printf("Result: %d\n", testSudokuString(correct_sudokustring));
-	generateSudokuPuzzle(32);
+
+	printf("Generate a sudoku puzzle! What difficulty?\n");
+	printf("0 = BEGINNER, 1 = EASY, 2 = MEDIUM, 3 = HARD, 4 = VERY HARD\n");
+	int difficulty;
+	int cellcount;
+
+	scanf("%d", &difficulty);
+
+	if(difficulty == 0) {
+		cellcount = BEGINNER;
+	} else if (difficulty == 1) {
+		cellcount = EASY;
+	} else if (difficulty == 2) {
+		cellcount = MEDIUM;
+	} else if (difficulty == 3) {
+		cellcount = HARD;
+	} else {
+		cellcount = VERY_HARD;
+	};
+	generateSudokuPuzzle(cellcount);
 
 }
+
+
 
 // REQUIRES: sudokustring only comprises of characters 0 <= x <= 9
 // MODIFIES: none
@@ -126,7 +153,8 @@ int testSudokuString(char *sudokustring)
 void generateSudokuPuzzle(int count) {
 	char sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
 	int usedArray[9][9];
-	int i, j, cursor1, cursor2;
+	int countArray[9] = {0,0,0,0,0,0,0,0,0} ;
+	int i, j, cursor1, cursor2, counter;
 	int **sudokuarray;
 
 	memset(usedArray, 0, 9 * sizeof(usedArray[0]));
@@ -136,13 +164,14 @@ void generateSudokuPuzzle(int count) {
 
 	for (i = 0; i < (rand() % count); i ++) {
 
+		if (VERBOSE) printf("Swapping rows.\n");
 		swapRows(&sudokuarray);
 		if (VERBOSE) printSudokuPuzzle(sudokuarray);
+		if (VERBOSE) printf("Rotating array.\n");
 		sudokuarray = rotateArray(sudokuarray);
 		if (VERBOSE) printSudokuPuzzle(sudokuarray);
 	}
 
-	int correct;
 	for(i=0; i< (81-count); i++) {
 
 		do {
@@ -151,16 +180,36 @@ void generateSudokuPuzzle(int count) {
 		} while (usedArray[cursor1][cursor2]);
 
 		usedArray[cursor1][cursor2] = 1;
-
-		sudokuarray[cursor1][cursor2] = 0;
+		
+		if (countArray[sudokuarray[cursor1][cursor2]-1] >= 8) {
+			if (VERBOSE) printf("%d has already been taken away 8 times\n", sudokuarray[cursor1][cursor2]);
+			i--;
+		}
+		else {
+			countArray[sudokuarray[cursor1][cursor2]-1] = countArray[sudokuarray[cursor1][cursor2]-1] + 1;
+			if (VERBOSE) printf("%d has already been taken away %d times\n", sudokuarray[cursor1][cursor2], countArray[sudokuarray[cursor1][cursor2]-1]);
+			sudokuarray[cursor1][cursor2]=0;
+		}
 	}
 
 	printSudokuPuzzle(sudokuarray);
+	
+	for (i = 0, counter = 0; i < 9; i++)
+		for (j = 0; j < 9; j++, counter++) {
+			sudokustring[counter] = (char) (((int) '0') + sudokuarray[i][j]);
+	}
+	
+	printf("Testing if sudoku puzzle is correct\n");
+	printf("Result: %d\n", testSudokuString(sudokustring));
+
 	for(i = 0; i < 9; i++)
 		free(sudokuarray[i]);
 	free(sudokuarray);
 }
 
+// REQUIRES: A 9x9 2D integer array as input
+// MODIFIES: array
+// EFFECTS: Frees up array, and returns a array that is rotated 90 degrees
 int **rotateArray(int **array)
 {
 	int **rotatedarray, i, j;
@@ -182,6 +231,9 @@ int **rotateArray(int **array)
 	return rotatedarray;
 }
 
+// REQUIRES: A 9x9 2D integer array as input
+// MODIFIES: array
+// EFFECTS: Swaps a pair of rows within the 3x3 block
 void swapRows(int ***array)
 {
 	int * tempLine, cursor1, cursor2, i;
@@ -491,15 +543,13 @@ void printSudokuPuzzle(int ** sudokuarray)
 		if(i == 3 || i == 6)
 			printf("---------------------\n");
 		for(j = 0; j < 9; j++){
-			printf("%d ", sudokuarray[i][j]);
+			printf("%c ", (!(sudokuarray[i][j]) ? '_' : (char) ((int) '0') + sudokuarray[i][j]));
 			// More formatting
 			if(j == 2 || j == 5)
 				printf("| ");	
 		}	
 		printf("\n");
 	}
-	printf("\n");
-	printf("\n");
 	printf("\n");
 }
 
