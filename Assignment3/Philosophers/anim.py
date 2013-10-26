@@ -23,6 +23,10 @@ class PhilosophicalDiners(ShowBase):
         self.p_constants = get_constants()
         self.context, self.socket = self._create_socket_context()
 
+        # Load texture
+        self.wood_tex = self.loader.loadTexture(
+            ASSETS_DIR + "derevo_mebel.jpg")
+
         self.models = {}
         # Load environment (really just a plane)
         self._load_model("house", scale=[25, 25, 25], pos=[0, 0, -10])
@@ -30,10 +34,11 @@ class PhilosophicalDiners(ShowBase):
         self._load_model("round_table", scale=[27, 27, 14], pos=[0, 0, 0])
         # Load and place forks
         self._load_forks()
+        #
+        self._load_chairs()
 
         # Apply textures to models
-        self.wood_tex = self.loader.loadTexture(
-            ASSETS_DIR + "derevo_mebel.jpg")
+
         self.models["round_table"].setTexture(self.wood_tex)
         self.models["round_table"].setTexScale(
             TextureStage.getDefault(), 0.005, 0.005)
@@ -106,6 +111,30 @@ class PhilosophicalDiners(ShowBase):
             self.forks[i].setPos(x, y, 2.3)
             self.forks[i].setH(self.forks[i], angle * 180 / pi + 90)
 
+    def _load_chairs(self):
+        """Load and place chairs"""
+        self.chairs = [0 for i in xrange(self.p_constants["NPHILOSOPHERS"])]
+        for i in xrange(self.p_constants["NPHILOSOPHERS"]):
+            x, y, angle = self._get_chair_coord(i)
+            self.chairs[i] = self.loader.loadModel(ASSETS_DIR + "chair")
+            self.chairs[i].reparentTo(self.render)
+            self.chairs[i].setScale(1, 1, 1)
+            self.chairs[i].setPos(x, y, 2.3)
+            self.chairs[i].setH(self.chairs[i], angle * 180 / pi + 90)
+            self.chairs[i].setTexture(self.wood_tex)
+
+    def _get_chair_coord(self, num):
+        """Do mathemagics to get cartesian coordinates of a fork by its number
+        on the table
+        """
+        diameter = pi * 5.6  # This number is a guess
+                          # Take care to change this if table-size changes
+        angle1 = num * 2 * pi / self.p_constants["NPHILOSOPHERS"]
+        angle2 = (num+1) * 2 * pi / self.p_constants["NPHILOSOPHERS"]
+        ang_diff = angle1-angle2
+        angle = angle1 + ang_diff/2
+        return (diameter / 2 * cos(angle), diameter / 2 * sin(angle), angle)
+
     def _get_fork_coord(self, num):
         """Do mathemagics to get cartesian coordinates of a fork by its number
         on the table
@@ -120,7 +149,7 @@ class PhilosophicalDiners(ShowBase):
         angleDegrees = 0#task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(
-            20 * sin(angleRadians), -20.0 * cos(angleRadians), 12)
+            25 * sin(angleRadians), -25.0 * cos(angleRadians), 15)
         self.camera.setHpr(angleDegrees, -30, 0)
         return Task.cont
 
