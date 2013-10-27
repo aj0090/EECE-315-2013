@@ -29,22 +29,22 @@ class PhilosophicalDiners(ShowBase):
 
         self.models = {}
         # Load environment (really just a plane)
-        self._load_model("house", scale=[25, 25, 25], pos=[0, 0, -10])
+        self.environ = self._load_model(
+            "house", scale=[25, 25, 25], pos=[0, 0, -10])
         # Load the "table"
-        self._load_model("round_table", scale=[27, 27, 14], pos=[0, 0, 0])
-        # Load and place forks
+        self.table = self._load_model(
+            "round_table", scale=[27, 27, 14], pos=[0, 0, 0])
+        # Load and place forks, chairs
         self._load_forks()
-        #
         self._load_chairs()
 
         # Apply textures to models
-
-        self.models["round_table"].setTexture(self.wood_tex)
-        self.models["round_table"].setTexScale(
+        self.table.setTexture(self.wood_tex)
+        self.table.setTexScale(
             TextureStage.getDefault(), 0.005, 0.005)
 
         self.black_tex = self.loader.loadTexture(ASSETS_DIR + "black.png")
-        self.models["house"].setTexture(self.black_tex)
+        self.environ.setTexture(self.black_tex)
 
         # Start sim
         self.rnum = 0
@@ -59,7 +59,7 @@ class PhilosophicalDiners(ShowBase):
 
         This is a blocking function
         """
-        if True:#not int(task.time*100) % 2:
+        if True:  # not int(task.time*100) % 2:
             self.socket.send("Hello")  # Send generic request
             # Get message, if wait longer than timeout, quit
             try:
@@ -70,7 +70,6 @@ class PhilosophicalDiners(ShowBase):
 
             print "Received reply ", self.rnum, "[", message, "]"
             self._anim_fork(int(message[0]), int(message[2]))
-
 
             self.rnum += 1
         print task.time
@@ -85,42 +84,41 @@ class PhilosophicalDiners(ShowBase):
 
         Also sets scale, pos, and/or hpr as per kwargs
         """
-        self.models[name] = self.loader.loadModel(ASSETS_DIR + name)
-        self.models[name].reparentTo(self.render)
+        model = self.loader.loadModel(ASSETS_DIR + name)
+        model.reparentTo(self.render)
         if kwargs.get("scale"):
             assert len(kwargs.get("scale")) == 3
             assert isinstance(kwargs.get("scale"), list)
-            self.models[name].setScale(*kwargs.get("scale"))
+            model.setScale(*kwargs.get("scale"))
         if kwargs.get("pos"):
             assert len(kwargs.get("pos")) == 3
             assert isinstance(kwargs.get("pos"), list)
-            self.models[name].setPos(*kwargs.get("pos"))
+            model.setPos(*kwargs.get("pos"))
         if kwargs.get("hpr"):
             assert len(kwargs.get("hpr")) == 3
             assert isinstance(kwargs.get("hpr"), list)
-            self.models[name].setHpr(*kwargs.get("hpr"))
+            model.setHpr(*kwargs.get("hpr"))
+        if kwargs.get("H"):
+            assert isinstance(kwargs.get("H"), float)
+            model.setH(model, kwargs.get("H"))
+
+        return model
 
     def _load_forks(self):
         """Load and place forks"""
-        self.forks = [0 for i in xrange(self.p_constants["NPHILOSOPHERS"])]
+        self.forks = self.p_constants["NPHILOSOPHERS"] * [0]
         for i in xrange(self.p_constants["NPHILOSOPHERS"]):
             x, y, angle = self._get_fork_coord(i)
-            self.forks[i] = self.loader.loadModel(ASSETS_DIR + "fork")
-            self.forks[i].reparentTo(self.render)
-            self.forks[i].setScale(3, 3, 3)
-            self.forks[i].setPos(x, y, 2.3)
-            self.forks[i].setH(self.forks[i], angle * 180 / pi + 90)
+            self.forks[i] = self._load_model(
+                "fork", scale=[3, 3, 3], pos=[x, y, 2.3], H=angle * 180 / pi + 90)
 
     def _load_chairs(self):
         """Load and place chairs"""
-        self.chairs = [0 for i in xrange(self.p_constants["NPHILOSOPHERS"])]
+        self.chairs = self.p_constants["NPHILOSOPHERS"] * [0]
         for i in xrange(self.p_constants["NPHILOSOPHERS"]):
             x, y, angle = self._get_chair_coord(i)
-            self.chairs[i] = self.loader.loadModel(ASSETS_DIR + "chair")
-            self.chairs[i].reparentTo(self.render)
-            self.chairs[i].setScale(1, 1, 1)
-            self.chairs[i].setPos(x, y, 2.3)
-            self.chairs[i].setH(self.chairs[i], angle * 180 / pi + 90)
+            self.chairs[i] = self._load_model(
+                "chair", scale=[1, 1, 1], pos=[x, y, 2.3], H=angle * 180 / pi + 90)
             self.chairs[i].setTexture(self.wood_tex)
 
     def _get_chair_coord(self, num):
@@ -130,9 +128,9 @@ class PhilosophicalDiners(ShowBase):
         diameter = pi * 5.6  # This number is a guess
                           # Take care to change this if table-size changes
         angle1 = num * 2 * pi / self.p_constants["NPHILOSOPHERS"]
-        angle2 = (num+1) * 2 * pi / self.p_constants["NPHILOSOPHERS"]
-        ang_diff = angle1-angle2
-        angle = angle1 + ang_diff/2
+        angle2 = (num + 1) * 2 * pi / self.p_constants["NPHILOSOPHERS"]
+        ang_diff = angle1 - angle2
+        angle = angle1 + ang_diff / 2
         return (diameter / 2 * cos(angle), diameter / 2 * sin(angle), angle)
 
     def _get_fork_coord(self, num):
@@ -146,7 +144,7 @@ class PhilosophicalDiners(ShowBase):
 
     def spin_camera(self, task):
         """Spin the camera around the table"""
-        angleDegrees = 0#task.time * 6.0
+        angleDegrees = 0  # task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(
             25 * sin(angleRadians), -25.0 * cos(angleRadians), 15)
@@ -166,7 +164,6 @@ class PhilosophicalDiners(ShowBase):
         socket.RCVTIMEO = timeout  # Set timeout
 
         return context, socket
-
 
 
 if __name__ == '__main__':
