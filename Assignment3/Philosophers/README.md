@@ -9,4 +9,4 @@ Dependencies
 ============
 * ZeroMQ (C and Python bindings; czmq, pyzmq)
     * ```$ ./install.sh```
-* Panda3D SDK (Grab the appropriate installer [from here](https://www.panda3d.org/download.php?platform=ubuntu&version=1.8.1&sdk))
+* Panda3D SDK (Grab the appropriate installer [from here](https://www.panda3d.org/download.php?platform=ubuntu&version=1.8.1&sdk)). If 1.8.1 does not work for you, you are encouraged to try one of the [nightlies](https://www.panda3d.org/download.php?sdk&version=devel)

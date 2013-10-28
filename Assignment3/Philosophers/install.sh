@@ -23,4 +23,4 @@ sudo ldconfig
 # Install Python bindings
 sudo apt-get install python-dev python-setuptools
 sudo easy_install-2.7 pip
-sudo pip-2.7 install pyzmq
+sudo pip-2.7 install pyzmq --upgrade
