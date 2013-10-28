@@ -12,7 +12,7 @@ def new_constants():
         "Eating and thinking upper bound? (msec) ")) - actime_lb
     assert actime_ub > 0, "Upper bound must be greater than lower bound"
     num_phil = int(raw_input("Number of philosophers? "))
-    assert 0 < num_phil <= 9, "No fewer than one, and no more than 9 philosophers."
+    assert 2 <= num_phil <= 9, "No fewer than two, and no more than nine philosophers."
     num_meals = int(raw_input("Number of meals? "))
     verbose = True if raw_input("VERBOSE? (y/n) ") == "y" else False
 

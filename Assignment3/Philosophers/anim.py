@@ -76,7 +76,7 @@ class PhilosophicalDiners(ShowBase):
         This is a blocking function
         """
         self.frame_ += 1
-        if not self.frame_ % 30:
+        if not self.frame_ % 15:
             self.socket.send("Hello")  # Send generic request
             # Get message, if wait longer than timeout, quit
             try:
