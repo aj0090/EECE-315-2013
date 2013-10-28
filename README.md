@@ -5,12 +5,17 @@ A repository for code used for EECE 315 101 2013.
 
 [![Build Status](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo.png?token=ZpicHWVRcsKnmG8qc6PB&branch=master)](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo)
 
+# Links
+
+[Trello](https://trello.com/b/B5YVE1uU/eece-315-group-12)
+[Google Docs](https://drive.google.com/folderview?id=0B5oHB38MvjcMOWV6MUhWM3BjRUE)
+
 # Make
 
     make: *.c
         gcc -g -o ProgramName fileX.c fileY.c fileZ.c
 
-# Valgrind
+# Valgrind (broken on Mac OS X 10.9)
 
 "definitely lost" means your program is leaking memory -- fix those leaks!
 
@@ -30,7 +35,7 @@ Create .valgrindrc with these settings to simplify your life.
     --track-origins=yes
     --show-reachable=yes
 
-# Travis CI
+# Travis CI (currently disabled)
 
 Travis CI is a continuous integration service that can build and run tests on the repo.
 
