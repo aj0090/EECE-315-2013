@@ -349,12 +349,12 @@ void *isValid(void *arg)
 	for(i = 0; i < testNumberArray->array_count; i++)
 	{
 		// Keep track of 'seen' elements within the 9-element array
-		int numbersFound[SUDOKU_DEPTH] = {0};
-		memset(numbersFound, 0, SUDOKU_DEPTH * sizeof(numbersFound[0]));
+		int numbersFound[SUDOKU_DEPTH] = {0,0,0,0,0,0,0,0,0};
 		for(j = 0; j < SUDOKU_DEPTH; j++)
 		{
 			// If element has been seen before in the 9-element array
-			if(numbersFound[testNumberArray->elements[i][j] - 1] == 1
+			if((testNumberArray->elements[i][j])
+				&& numbersFound[testNumberArray->elements[i][j] - 1] == 1
 				&& testNumberArray->elements[i][j] >= 1
 				&& testNumberArray->elements[i][j] <= 9)
 			{
@@ -364,7 +364,8 @@ void *isValid(void *arg)
 			}
 			// Element has not been seen
 			else{
-				numbersFound[testNumberArray->elements[i][j] - 1] = 1;
+				if (testNumberArray->elements[i][j])
+					numbersFound[testNumberArray->elements[i][j] - 1] = 1;
 			}
 		}
 		// Break early since the structure is not valid
