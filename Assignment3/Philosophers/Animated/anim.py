@@ -27,7 +27,7 @@ class PhilosophicalDiners(ShowBase):
         self.wp.setSize(1280, 720)
         base.win.requestProperties(self.wp)
         self.fork_height = 2.3
-        self.frame_ = 0
+        self.frame_time = 0.0
         self.textObject = OnscreenText(text='',
                                        pos=(-1.0, 0.9), scale = 0.10, fg=(255, 255, 255, 200))
 
@@ -75,8 +75,7 @@ class PhilosophicalDiners(ShowBase):
 
         This is a blocking function
         """
-        self.frame_ += 1
-        if not self.frame_ % 15:
+        if task.time - self.frame_time > 0.35:
             self.socket.send("Hello")  # Send generic request
             # Get message, if wait longer than timeout, quit
             try:
@@ -94,6 +93,7 @@ class PhilosophicalDiners(ShowBase):
             self._anim_bowl(int(message[1]), int(message[2]))
 
             self.rnum += 1
+            self.frame_time = task.time
 
         return Task.cont
 
