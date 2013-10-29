@@ -1,58 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <pthread.h>
-#include <math.h>
-#include <time.h>
-
-
-#define NUM_COL_THREADS 3
-#define NUM_ROW_THREADS 3
-#define NUM_BLOCK_THREADS 3
-#define BEGINNER 64
-#define EASY 48
-#define MEDIUM 36
-#define HARD 24
-#define VERY_HARD 17
-
-
-#define SUDOKU_DEPTH 9
-
-// Define VERBOSE to be 1 if you want all the debugging outputs
-#define VERBOSE 0
-#
-
-
-int testSudokuString(char *);
-void generateSudokuPuzzle(int);
-int **rotateArray(int**);
-void swapRows(int***);
-
-
-typedef struct NumberArray{
-	int **elements;
-	int array_count;
-	int isValid;
-	int isTested;
-} NumberArray;
-
-int testNumberArrays(NumberArray *, NumberArray *, NumberArray *);
-void *isValid(void *);
-int *copyOfRow(int **, int);
-int *copyOfColumn(int **, int);
-int *copyOfBlock(int **, int);
-
-void initializeArrays(NumberArray *, NumberArray *, NumberArray *);
-void freeNumberArrays(NumberArray *, NumberArray *, NumberArray *);
-
-int **decodeSudokuString(char *);
-void printSudokuPuzzle(int **);
-
-int max(int, int);
-
-
-
+#include "sudoku.h"
 
 int main(int argc, char *argv[])
 {
@@ -60,9 +6,18 @@ int main(int argc, char *argv[])
 
 	char correct_sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
 
+	printf("Result: %s\n", (testSudokuString(correct_sudokustring) == 1) ? "Correct" : "Incorrect" );
+
 	char incorrect_sudokustring[] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
 
-	printf("Result: %d\n", testSudokuString(correct_sudokustring));
+	printf("Result: %s\n", (testSudokuString(incorrect_sudokustring) == 1) ? "Correct" : "Incorrect" );
+
+	char sudokuarray[81];
+
+	printf("Input a Sudoku Solution, and I'll test for validity\n");
+	scanf("%s", sudokuarray);
+
+	printf("Result: %s\n", (testSudokuString(sudokuarray) == 1) ? "Correct" : "Incorrect" );
 
 	printf("Generate a sudoku puzzle! What difficulty?\n");
 	printf("0 = BEGINNER, 1 = EASY, 2 = MEDIUM, 3 = HARD, 4 = VERY HARD\n");
@@ -83,10 +38,7 @@ int main(int argc, char *argv[])
 		cellcount = VERY_HARD;
 	};
 	generateSudokuPuzzle(cellcount);
-
 }
-
-
 
 // REQUIRES: sudokustring only comprises of characters 0 <= x <= 9
 // MODIFIES: none
@@ -116,7 +68,7 @@ int testSudokuString(char *sudokustring)
 
 	i = 0;
 
-	// Allocate 9-element arrays to each of the structs, with rollover cursors that 
+	// Allocate 9-element arrays to each of the structs, with rollover cursors that
 	// depend on the number of structs available
 	while(i < 9)
 	{
@@ -130,7 +82,7 @@ int testSudokuString(char *sudokustring)
 		row_NumberArrays[row_cursor].elements[row_NumberArrays[row_cursor].array_count++] = copyOfRow(sudokuarray, i);
 		column_NumberArrays[col_cursor].elements[column_NumberArrays[col_cursor].array_count++] = copyOfColumn(sudokuarray, i);
 		block_NumberArrays[block_cursor].elements[block_NumberArrays[block_cursor].array_count++] = copyOfBlock(sudokuarray, i);
-	
+
 		i++;
 
 		if(VERBOSE) printf("array_count: %d\n\n", row_NumberArrays[row_cursor].array_count);
@@ -145,7 +97,7 @@ int testSudokuString(char *sudokustring)
 	for(i = 0; i < 9; i++)
 		free(sudokuarray[i]);
 	free(sudokuarray);
-	
+
 	return result;
 }
 
@@ -180,7 +132,7 @@ void generateSudokuPuzzle(int count) {
 		} while (usedArray[cursor1][cursor2]);
 
 		usedArray[cursor1][cursor2] = 1;
-		
+
 		if (countArray[sudokuarray[cursor1][cursor2]-1] >= 8) {
 			if (VERBOSE) printf("%d has already been taken away 8 times\n", sudokuarray[cursor1][cursor2]);
 			i--;
@@ -193,14 +145,14 @@ void generateSudokuPuzzle(int count) {
 	}
 
 	printSudokuPuzzle(sudokuarray);
-	
+
 	for (i = 0, counter = 0; i < 9; i++)
 		for (j = 0; j < 9; j++, counter++) {
 			sudokustring[counter] = (char) (((int) '0') + sudokuarray[i][j]);
 	}
-	
+
 	printf("Testing if sudoku puzzle is correct\n");
-	printf("Result: %d\n", testSudokuString(sudokustring));
+	printf("Result: %s\n", (testSudokuString(sudokustring) == 1) ? "Correct" : "Incorrect" );
 
 	for(i = 0; i < 9; i++)
 		free(sudokuarray[i]);
@@ -249,7 +201,7 @@ void swapRows(int ***array)
 
 // REQUIRES: Fully initialized/valid NumberArrays, defined NUM_ROW_THREADS, NUM_COL_THREADS, NUM_BLOCK_THREADS
 // MODIFIES: row_numberarrays, column_numberarrays, block_numberarrays
-// EFFECTS: Creates threads to run every NumberArray struct on the isValid() function. After the structs isTested variables == 1, if any of the isValid variables == 0, return 0. Else, return 1. 
+// EFFECTS: Creates threads to run every NumberArray struct on the isValid() function. After the structs isTested variables == 1, if any of the isValid variables == 0, return 0. Else, return 1.
 int testNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numberarrays, NumberArray *block_numberarrays)
 {
 	pthread_t rowThreads[NUM_ROW_THREADS];
@@ -275,9 +227,8 @@ int testNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numberar
 		if(i < NUM_BLOCK_THREADS)
 			if(pthread_create(&blockThreads[i], NULL, isValid, (&block_numberarrays[i]) ))
 				if(VERBOSE) printf("Couldn't create thread for column %d.\n", i);
-		
-	}
 
+	}
 
 	// Start execution on all of the threads
 	for(i = 0; i < max_threads; i++)
@@ -293,9 +244,8 @@ int testNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numberar
 		if(i < NUM_BLOCK_THREADS)
 			if(pthread_join(blockThreads[i], NULL))
 				if(VERBOSE) printf("Couldn't create thread for column %d.\n", i);
-		
 	}
-	
+
 	// Test all the structs isTested bits incrementally until they all == 1.
 	// If any fo the isValid members == 0, break the loop and set isvalid to 0.
 	int isValid = 1;
@@ -309,7 +259,7 @@ int testNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numberar
 				isValid = 0;
 				break;
 			}
-			
+
 		}
 		if(i < NUM_COL_THREADS){
 			while(column_numberarrays[i].isTested == 0)
@@ -374,7 +324,6 @@ void *isValid(void *arg)
 	}
 	// Set isTested to 1 to let the dispatcher of the threads that this struct has been tested.
 	testNumberArray->isTested = 1;
-
 }
 
 // REQUIRES: Valid 9x9 sudokuarray, 0 <= row <= 8
@@ -479,7 +428,6 @@ void initializeArrays(NumberArray *row_numberarrays, NumberArray *column_numbera
 		// Allocate memory for the pointers of the pointers
 		block_numberarrays[i].elements = malloc(sizeof(int *) * (SUDOKU_DEPTH / NUM_BLOCK_THREADS + 1));
 	}
-
 }
 
 
@@ -518,7 +466,7 @@ void freeNumberArrays(NumberArray *row_numberarrays, NumberArray *column_numbera
 int **decodeSudokuString(char *sudokustring)
 {
 	int i, j;
-	
+
 	int **sudokuarray;
 
 	// Allocate memory for the two dimensional 9x9 array
@@ -529,8 +477,8 @@ int **decodeSudokuString(char *sudokustring)
 	for(i = 0; i < 9; i++){
 		for(j = 0; j < 9; j++){
 			// Correct ASCII to integer with 0x30
-			sudokuarray[i][j] = sudokustring[i * 9 + j] - 0x30;	
-		}	
+			sudokuarray[i][j] = sudokustring[i * 9 + j] - 0x30;
+		}
 	}
 	return sudokuarray;
 }
@@ -547,8 +495,8 @@ void printSudokuPuzzle(int ** sudokuarray)
 			printf("%c ", (!(sudokuarray[i][j]) ? '_' : (char) ((int) '0') + sudokuarray[i][j]));
 			// More formatting
 			if(j == 2 || j == 5)
-				printf("| ");	
-		}	
+				printf("| ");
+		}
 		printf("\n");
 	}
 	printf("\n");
@@ -564,6 +512,4 @@ int max(int num1, int num2)
 	else
 		return num2;
 }
-
-
 
