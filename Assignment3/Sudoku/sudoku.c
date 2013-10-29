@@ -6,18 +6,18 @@ int main(int argc, char *argv[])
 
 	char correct_sudokustring[] = "123567894456189237789234156214356789365798412897412365532641978648973521971825643";
 
-	printf("Result: %d\n", testSudokuString(correct_sudokustring));
+	printf("Result: %s\n", (testSudokuString(correct_sudokustring)) ? "Correct" : "Incorrect" );
 
 	char incorrect_sudokustring[] = "103567894456189237789234156214356789365798412897412365532641978648973521977895643";
 
-	printf("Result: %d\n", testSudokuString(incorrect_sudokustring));
+	printf("Result: %s\n", (testSudokuString(incorrect_sudokustring)) ? "Correct" : "Incorrect" );
 
 	char sudokuarray[81];
 
 	printf("Input a Sudoku Solution, and I'll test for validity\n");
 	scanf("%s", sudokuarray);
 
-	printf("Result: %d\n", testSudokuString(sudokuarray));
+	printf("Result: %s\n", (testSudokuString(sudokuarray)) ? "Correct" : "Incorrect" );
 
 	printf("Generate a sudoku puzzle! What difficulty?\n");
 	printf("0 = BEGINNER, 1 = EASY, 2 = MEDIUM, 3 = HARD, 4 = VERY HARD\n");
@@ -152,7 +152,7 @@ void generateSudokuPuzzle(int count) {
 	}
 
 	printf("Testing if sudoku puzzle is correct\n");
-	printf("Result: %d\n", testSudokuString(sudokustring));
+	printf("Result: %s\n", (testSudokuString(sudokustring)) ? "Correct" : "Incorrect" );
 
 	for(i = 0; i < 9; i++)
 		free(sudokuarray[i]);
