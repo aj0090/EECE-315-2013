@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	char sudokuarray[81];
 
 	printf("Input a Sudoku Solution, and I'll test for validity\n");
-	scanf("%s", sudokuarray);
+	scanf("%81s", sudokuarray);
 
 	printf("Result: %s\n", (testSudokuString(sudokuarray) == 1) ? "Correct" : "Incorrect" );
 
