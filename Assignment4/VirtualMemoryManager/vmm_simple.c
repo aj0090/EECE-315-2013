@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 
 	if(argc != 2){
 		printf("Insufficient arguments. Please enter just one argument, with the filename containing the addresses.\n");
+		return 0;
 	}
 
 	// Open BACKING_STORE.bin into a file
