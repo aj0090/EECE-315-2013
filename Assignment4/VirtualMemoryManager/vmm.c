@@ -37,7 +37,6 @@ struct TLB{
 	int frameNumbers[TLBSIZE];
 	int tlbCount;
 	int ageCounter[TLBSIZE];
-	// TODO: IMPLEMENT OTHER STUFF HERE TO KEEP TRACK OF TLB ENTRIES
 };
 
 
@@ -62,10 +61,18 @@ void *checkMemory(void *arg);
 int main(int argc, char **argv)
 {
 
-	if(argc != 2){
+	if(argc < 2){
 		printf("Insufficient arguments. Please enter just one argument, with the filename containing the addresses.\n");
 		return 0;
 	}
+
+	int threaded = 0;
+
+
+	// Check for multithreading
+	if(argc == 3)
+		if(!strcmp("--threaded", argv[2]))
+			threaded = 1;
 
 	// Open BACKING_STORE.bin into a file
 	backingStore = NULL;
@@ -98,27 +105,77 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	pthread_mutex_init(&cursorLock, NULL);
-	pthread_mutex_init(&pageTableLock, NULL);
+	if(!threaded){
+		for(addressCursor = 0; addressCursor < numAddresses; addressCursor++)
+		{
+			// Read in the next address
+			int address = addresses[addressCursor];
 
-	pthread_t memoryThreads[MAX_CONCURRENT];
+			// Find the pageNumber and Offset
+			int pageNumber = GetPageNumber(address);
+			int pageOffset = GetPageOffSet(address);
 
-	int i;
+			char *page;
 
-	// Create row, column, and block threads
-	for(i = 0; i < MAX_CONCURRENT; i++)
-	{
-		if(pthread_create(&memoryThreads[i], NULL, checkMemory, (&addresses) ))
-			printf("Couldn't create thread for memoryThread %d.\n", i);
+			// Check to see if the TLB contains a quick conversion from pageNumber to frameNumber
+			int frameNumber = CheckTLB(&tlb, pageNumber);
+	
+			// frameNumber was not found in the TLB, so try looking if it's
+			// in the pagetable
+			if(frameNumber == -1){
+				frameNumber = FindPageIndex(&pageTable, pageNumber);
+			}
+			else{
+				TLBHits++;
+			}
+
+			// Framenumber found in the page tables.
+			if(frameNumber != -1){
+				page = pageTable.pages[frameNumber];
+			}
+			// frameNumber was not even in the pageTable, so read it from the backingStore
+			else{
+				page = ReadPage(backingStore, pageNumber);
+				frameNumber= UpdatePageTable(&pageTable, page, pageNumber);
+				pageFaults++;
+			}
+
+
+			// Print out the translations and the value
+			printf("Virtual address: %d ", address);
+			printf("Physical address: %d ", (frameNumber * 0x100 ) + pageOffset);
+			printf("Value: %d\n", page[pageOffset]);
+
+
+			// Update the TLB with the pageNumber to frameNumber translation
+			UpdateTLB(&tlb, pageNumber, frameNumber);
+		}
 
 	}
+	else{
+		pthread_mutex_init(&cursorLock, NULL);
+		pthread_mutex_init(&pageTableLock, NULL);
 
-	// Start execution on all of the threads
-	for(i = 0; i < MAX_CONCURRENT; i++)
-	{
-		if(pthread_join(memoryThreads[i], NULL))
-			printf("Couldn't create thread for memoryThread %d.\n", i);
+		pthread_t memoryThreads[MAX_CONCURRENT];
+
+		int i;
+
+		// Create row, column, and block threads
+		for(i = 0; i < MAX_CONCURRENT; i++)
+		{
+			if(pthread_create(&memoryThreads[i], NULL, checkMemory, (&addresses) ))
+				printf("Couldn't create thread for memoryThread %d.\n", i);
+
+		}
+
+		// Start execution on all of the threads
+		for(i = 0; i < MAX_CONCURRENT; i++)
+		{
+			if(pthread_join(memoryThreads[i], NULL))
+				printf("Couldn't create thread for memoryThread %d.\n", i);
+		}
 	}
+
 
 	printf("Number of Translated Addresses = %d\n", numAddresses);
 
