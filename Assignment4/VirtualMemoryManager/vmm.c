@@ -6,6 +6,7 @@
 #define PAGESIZE 256
 #define PAGECOUNT 256
 #define TLBSIZE 16
+#define MAX_ADDRESSES 2000
 
 
 // pages and pageNumbers are associated with eachother by their index
@@ -23,6 +24,7 @@ struct TLB{
 	int pageNumbers[TLBSIZE];
 	int frameNumbers[TLBSIZE];
 	int tlbCount;
+	int ageCounter[TLBSIZE];
 	// TODO: IMPLEMENT OTHER STUFF HERE TO KEEP TRACK OF TLB ENTRIES
 };
 
@@ -39,7 +41,7 @@ void FreePageTable(struct PageTable *);
 int GetPageNumber(int);
 int GetPageOffSet(int);
 
-int *ReadAddresses(char *fileName, int *addressCount);
+int ReadAddresses(char *fileName, int *addressCount);
 char *ReadPage(FILE *, int);
 
 
@@ -78,7 +80,14 @@ int main(int argc, char **argv)
 
 	// Prepare the list of addresses to be read
 	int *addresses, addressCount;
-	addresses = ReadAddresses(argv[1], &addressCount);
+	addressCount = ReadAddresses(argv[1], addresses);
+	printf("The address count is %d\n", addressCount);
+
+	//Debug addresses are read correctly
+	int i = 0;
+	for(i = 0; i < MAX_ADDRESSES; i++) {
+		//printf("The address is %d\n", addresses[i]);
+	}
 
 	// Reading in the addresses failed, exit the program.
 	if(addresses == NULL){
@@ -103,11 +112,17 @@ int main(int argc, char **argv)
 
 		// Check to see if the TLB contains a quick conversion from pageNumber to frameNumber
 		int frameNumber = CheckTLB(&tlb, pageNumber);
+
+		// printf("%d is the frameNumber in TLB\n", frameNumber);
+
+		// return;
 	
 		// frameNumber was not found in the TLB, so try looking if it's
 		// in the pagetable
 		if(frameNumber == -1){
 			frameNumber = FindPageIndex(&pageTable, pageNumber);
+			// printf("%d is the frameNumber in pageTable\n", frameNumber);
+			// return;
 		}
 		else{
 			TLBHits++;
@@ -152,9 +167,14 @@ int main(int argc, char **argv)
 // MODIFIES: tlb
 // EFFECTS: Sets tlb->frameNumbers all to -1, sets tlb->pageNumbers all to -1,
 // and sets tlb->tlbCount to 0.
-void ClearTLB(struct TLB *tlb)
+void ClearTLB(struct TLB *tlb)	
 {
-	//TODO: IMPLEMENT ME
+	tlb->tlbCount = 0;
+	int i;
+	for (i = 0; i < TLBSIZE; i++) {
+		tlb->frameNumbers[i] = -1;
+		tlb->pageNumbers[i] = -1;
+	}
 	return;
 }
 
@@ -164,6 +184,11 @@ void ClearTLB(struct TLB *tlb)
 // If it does, return the translation. If not, return -1
 int CheckTLB(struct TLB *tlb, int pageNumber)
 {
+	int i;
+	for (i = 0; i < tlb->tlbCount; i++) {
+		if (tlb->pageNumbers[i] == pageNumber)
+			return tlb->frameNumbers[i];
+	}
 	//TODO: IMPLEMENT ME
 	return -1;
 }
@@ -176,7 +201,30 @@ int CheckTLB(struct TLB *tlb, int pageNumber)
 // Feel free to modify the TLB struct in order to accomplish what you want.
 void UpdateTLB(struct TLB *tlb, int pageNumber, int frameNumber)
 {
-	//TODO: IMPLEMENT ME
+	int i;
+	int max = 0;
+	int oldestIndex = 0;
+	if (tlb->tlbCount == TLBSIZE)
+	{
+		for (i = 0; i < TLBSIZE; i++) {
+			if (tlb->ageCounter[i] >= max) {
+				max = tlb->ageCounter[i];
+				oldestIndex = i;
+			}
+		}
+		tlb->pageNumbers[oldestIndex] = pageNumber;
+		tlb->frameNumbers[oldestIndex] = frameNumber;
+		tlb->ageCounter[oldestIndex] = 0;
+	} else {
+		tlb->pageNumbers[tlb->tlbCount] = pageNumber;
+		tlb->frameNumbers[tlb->tlbCount] = frameNumber;
+		tlb->tlbCount++;
+	}
+
+	for (i = 0; i <= tlb->tlbCount; i++) {
+		tlb->ageCounter[i]++;
+	}	
+
 	return;
 }
 
@@ -187,7 +235,12 @@ void UpdateTLB(struct TLB *tlb, int pageNumber, int frameNumber)
 // pageTable->pageCount to 0
 void ClearPageNumbers(struct PageTable *pageTable)
 {
-	//TODO: IMPLEMENT ME
+	pageTable->pageCount = 0;
+	int i;
+	for (i = 0; i < PAGECOUNT; i++) {
+		pageTable->pageNumbers[i] = -1;
+	}	
+
 	return;
 }
 
@@ -198,6 +251,11 @@ void ClearPageNumbers(struct PageTable *pageTable)
 // contains pageNumber. Else, returns -1.
 int FindPageIndex(struct PageTable *pageTable, int pageNumber)
 {
+	int i;
+	for (i = 0; i < pageTable->pageCount; i++) {
+		if (pageTable->pageNumbers[i] == pageNumber)
+			return i;
+	}	
 	//TODO: IMPLEMENT ME
 	return -1;
 }
@@ -210,7 +268,7 @@ int FindPageIndex(struct PageTable *pageTable, int pageNumber)
 int AddPage(struct PageTable *pageTable, char *page, int pageNumber)
 {
 	pageTable->pages[pageTable->pageCount] = page;
-	pageTable->pageNumbers[pageTable->pageCount];
+	pageTable->pageNumbers[pageTable->pageCount] = pageNumber;
 	pageTable->pageCount++;
 }
 
@@ -253,10 +311,18 @@ int GetPageOffSet(int address)
 // 0-65535, in string form, seperated by new lines. On finish, returns
 // a pointer to an allocated int array with all of the values, and 
 // sets addressCount to the number of addresses in the array.
-int *ReadAddresses(char *fileName, int *addressCount)
+int ReadAddresses(char *fileName, int *addresses)
 {
-	//TODO: IMPLEMENT ME
-	return NULL;
+	addresses = (int*)malloc(sizeof(int)*MAX_ADDRESSES);
+
+    FILE * f = fopen(fileName, "r");
+
+    int i;
+    for(i = 0; i < MAX_ADDRESSES; i++)
+    	if (fscanf(f, "%d", &addresses[i]) != 1)
+    		return i;
+
+	return 0;
 }
 
 
