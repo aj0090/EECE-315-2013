@@ -36,7 +36,7 @@ void UpdateTLB(struct TLB *, int, int);
 void ClearPageNumbers(struct PageTable *);
 int FindPageIndex(struct PageTable *, int p);
 int AddPage(struct PageTable *, char *, int);
-void FreePageTable(struct PageTable *);
+void FreePageTable(struct PageTable *, int freeArray[], int size);
 
 int GetPageNumber(int);
 int GetPageOffSet(int);
@@ -148,14 +148,8 @@ int main(int argc, char **argv)
 	printf("TLB Hit Rate = %0.3f\n", (float)TLBHits / (float)numAddresses);
 	
 	free(addresses);
-	FreePageTable(&pageTable);
 
-	int i;
-	for (i = 0; i < PAGECOUNT; ++i)
-	{
-		if (freeArray[i])
-			free(pageTable.pages[i]);
-	}
+	FreePageTable(&pageTable, freeArray, PAGECOUNT);
 
 	fclose(backingStore);
 }
@@ -277,9 +271,15 @@ int AddPage(struct PageTable *pageTable, char *page, int pageNumber)
 // MODIFIES: pageTable
 // EFFECTS: Frees the memory allocated to each specific page stored
 // in the pageTable.
-void FreePageTable(struct PageTable *pageTable)
+void FreePageTable(struct PageTable *pageTable, int freeArray[], int size)
 {
-	//TODO: IMPLEMENT ME
+	int i;
+	for (i = 0; i < size; ++i)
+	{
+		if (freeArray[i])
+			free(pageTable->pages[i]);
+	}
+
 	return;
 }
 
