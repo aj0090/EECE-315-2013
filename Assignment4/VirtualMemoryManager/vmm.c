@@ -44,12 +44,6 @@ int GetPageOffSet(int);
 int *ReadAddresses(char *fileName, int *addressCount);
 char *ReadPage(FILE *, int);
 
-
-
-
-
-
-
 int main(int argc, char **argv)
 {
 
@@ -81,15 +75,8 @@ int main(int argc, char **argv)
 	// Prepare the list of addresses to be read
 	int *addresses, addressCount;
 	addresses = ReadAddresses(argv[1], &addressCount);
-	printf("The address count is %d\n", addressCount);
 
 	int numAddresses = addressCount;
-
-	//Debug addresses are read correctly
-	// int i = 0;
-	// for(i = 0; i < addressCount; i++) {
-	// 	printf("The address is %d\n", addresses[i]);
-	// }
 
 	// Reading in the addresses failed, exit the program.
 	if(addresses == NULL){
@@ -99,42 +86,32 @@ int main(int argc, char **argv)
 
 	int addressCursor;
 	int pageFaults = 0, TLBHits = 0;
+	int freeArray[PAGECOUNT] = { 0 };
 	// Main loop, go through each address
 
 	for(addressCursor = 0; addressCursor < numAddresses; addressCursor++)
 	{
-
-		printf("The address count is %d\n", addressCount);
-
+		int needsFree = 0;
 		// Read in the next address
 		int address = addresses[addressCursor];
 
-
 		// Find the pageNumber and Offset
 		int pageNumber = GetPageNumber(address);
-		printf("%d is the page number\n", pageNumber);
 		int pageOffset = GetPageOffSet(address);
 
 		char *page;
 
 		// Check to see if the TLB contains a quick conversion from pageNumber to frameNumber
 		int frameNumber = CheckTLB(&tlb, pageNumber);
-
-		// printf("%d is the frameNumber in TLB\n", frameNumber);
-
-		// return;
 	
 		// frameNumber was not found in the TLB, so try looking if it's
 		// in the pagetable
 		if(frameNumber == -1){
 			frameNumber = FindPageIndex(&pageTable, pageNumber);
-			// printf("%d is the frameNumber in pageTable\n", frameNumber);
-			// return;
 		}
 		else{
 			TLBHits++;
 		}
-
 
 		// Framenumber found in the page tables.
 		if(frameNumber != -1){
@@ -143,37 +120,43 @@ int main(int argc, char **argv)
 		// frameNumber was not even in the pageTable, so read it from the backingStore
 		else{
 			page = ReadPage(backingStore, pageNumber);
-
-			int i;
-			for (i = 0; i < PAGESIZE; i ++) {
-
-				if (3 == addressCursor);
-				//printf("The value at this offset %d is %d\n", i, page[i]);
-			}
-
+			needsFree = 1;
 			frameNumber= AddPage(&pageTable, page, pageNumber);
 			pageFaults++;
 		}
 
 
 		// Print out the translations and the value
-		printf("Virtual Address: %d ", address);
-		printf("Physical Address: %d ", (frameNumber * 0x100 ) + pageOffset);
+		printf("Virtual address: %d ", address);
+		printf("Physical address: %d ", (frameNumber * 0x100 ) + pageOffset);
 		printf("Value: %d\n", page[pageOffset]);
 
 
 		// Update the TLB with the pageNumber to frameNumber translation
 		UpdateTLB(&tlb, pageNumber, frameNumber);
+
+		if (needsFree)
+			freeArray[frameNumber] = 1;
 	}
 
+	printf("Number of Translated Addresses = %d\n", numAddresses);
+
 	printf("Page Faults = %d\n", pageFaults);
-	printf("Page Fault Rate = %f\n", (float)pageFaults / (float)numAddresses);
+	printf("Page Fault Rate = %0.3f\n", (float)pageFaults / (float)numAddresses);
 
 	printf("TLB Hits = %d\n", TLBHits);
-	printf("TLB Hit Rate = %f\n", (float)TLBHits / (float)numAddresses);
+	printf("TLB Hit Rate = %0.3f\n", (float)TLBHits / (float)numAddresses);
 	
-
+	free(addresses);
 	FreePageTable(&pageTable);
+
+	int i;
+	for (i = 0; i < PAGECOUNT; ++i)
+	{
+		if (freeArray[i])
+			free(pageTable.pages[i]);
+	}
+
 	fclose(backingStore);
 }
 
@@ -189,6 +172,7 @@ void ClearTLB(struct TLB *tlb)
 	for (i = 0; i < TLBSIZE; i++) {
 		tlb->frameNumbers[i] = -1;
 		tlb->pageNumbers[i] = -1;
+		tlb->ageCounter[i] = -1;
 	}
 	return;
 }
