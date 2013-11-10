@@ -41,7 +41,7 @@ void FreePageTable(struct PageTable *);
 int GetPageNumber(int);
 int GetPageOffSet(int);
 
-int ReadAddresses(char *fileName, int *addressCount);
+int *ReadAddresses(char *fileName, int *addressCount);
 char *ReadPage(FILE *, int);
 
 
@@ -80,14 +80,16 @@ int main(int argc, char **argv)
 
 	// Prepare the list of addresses to be read
 	int *addresses, addressCount;
-	addressCount = ReadAddresses(argv[1], addresses);
+	addresses = ReadAddresses(argv[1], &addressCount);
 	printf("The address count is %d\n", addressCount);
 
+	int numAddresses = addressCount;
+
 	//Debug addresses are read correctly
-	int i = 0;
-	for(i = 0; i < MAX_ADDRESSES; i++) {
-		//printf("The address is %d\n", addresses[i]);
-	}
+	// int i = 0;
+	// for(i = 0; i < addressCount; i++) {
+	// 	printf("The address is %d\n", addresses[i]);
+	// }
 
 	// Reading in the addresses failed, exit the program.
 	if(addresses == NULL){
@@ -98,14 +100,19 @@ int main(int argc, char **argv)
 	int addressCursor;
 	int pageFaults = 0, TLBHits = 0;
 	// Main loop, go through each address
-	for(addressCursor = 0; addressCursor < addressCount; addressCursor++)
+
+	for(addressCursor = 0; addressCursor < numAddresses; addressCursor++)
 	{
+
+		printf("The address count is %d\n", addressCount);
+
 		// Read in the next address
 		int address = addresses[addressCursor];
 
 
 		// Find the pageNumber and Offset
 		int pageNumber = GetPageNumber(address);
+		printf("%d is the page number\n", pageNumber);
 		int pageOffset = GetPageOffSet(address);
 
 		char *page;
@@ -136,14 +143,22 @@ int main(int argc, char **argv)
 		// frameNumber was not even in the pageTable, so read it from the backingStore
 		else{
 			page = ReadPage(backingStore, pageNumber);
-			AddPage(&pageTable, page, pageNumber);
+
+			int i;
+			for (i = 0; i < PAGESIZE; i ++) {
+
+				if (3 == addressCursor);
+				//printf("The value at this offset %d is %d\n", i, page[i]);
+			}
+
+			frameNumber= AddPage(&pageTable, page, pageNumber);
 			pageFaults++;
 		}
 
 
 		// Print out the translations and the value
 		printf("Virtual Address: %d ", address);
-		printf("Physical Address: %d ", (frameNumber * 0xFF) + pageOffset);
+		printf("Physical Address: %d ", (frameNumber * 0x100 ) + pageOffset);
 		printf("Value: %d\n", page[pageOffset]);
 
 
@@ -152,10 +167,10 @@ int main(int argc, char **argv)
 	}
 
 	printf("Page Faults = %d\n", pageFaults);
-	printf("Page Fault Rate = %f\n", (float)pageFaults / (float)addressCount);
+	printf("Page Fault Rate = %f\n", (float)pageFaults / (float)numAddresses);
 
 	printf("TLB Hits = %d\n", TLBHits);
-	printf("TLB Hit Rate = %f\n", (float)TLBHits / (float)addressCount);
+	printf("TLB Hit Rate = %f\n", (float)TLBHits / (float)numAddresses);
 	
 
 	FreePageTable(&pageTable);
@@ -270,6 +285,7 @@ int AddPage(struct PageTable *pageTable, char *page, int pageNumber)
 	pageTable->pages[pageTable->pageCount] = page;
 	pageTable->pageNumbers[pageTable->pageCount] = pageNumber;
 	pageTable->pageCount++;
+	return pageTable->pageCount - 1;
 }
 
 
@@ -291,7 +307,7 @@ void FreePageTable(struct PageTable *pageTable)
 int GetPageNumber(int address)
 {
 	// Return the bits 8-15, shifted to the right
-	return (address / 0xFF) & 0xFF;
+	return (address / 0x100) & 0xFF;
 }
 
 // REQUIRES: none
@@ -311,16 +327,18 @@ int GetPageOffSet(int address)
 // 0-65535, in string form, seperated by new lines. On finish, returns
 // a pointer to an allocated int array with all of the values, and 
 // sets addressCount to the number of addresses in the array.
-int ReadAddresses(char *fileName, int *addresses)
+int* ReadAddresses(char *fileName, int *addressCount)
 {
-	addresses = (int*)malloc(sizeof(int)*MAX_ADDRESSES);
+	int *addresses = (int*)malloc(sizeof(int)*MAX_ADDRESSES);
 
     FILE * f = fopen(fileName, "r");
 
     int i;
     for(i = 0; i < MAX_ADDRESSES; i++)
-    	if (fscanf(f, "%d", &addresses[i]) != 1)
-    		return i;
+    	if (fscanf(f, "%d", &addresses[i]) != 1) {
+    		*addressCount = i;
+    		return addresses;
+    	}
 
 	return 0;
 }
