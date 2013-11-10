@@ -1,2 +1,2 @@
 make: *.c
-	gcc -g -o osTool osTool.c
+	gcc -g -o monitor monitor.c
