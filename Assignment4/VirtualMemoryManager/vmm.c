@@ -1,13 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <pthread.h>
 
 #define PAGESIZE 256
 #define PAGECOUNT 128
 #define TLBSIZE 16
 #define MAX_ADDRESSES 2000
+#define MAX_CONCURRENT 3
 
+int addressCursor = 0;
+int pageFaults = 0, TLBHits = 0;
+int numAddresses = 0;
+
+pthread_mutex_t cursorLock;
+pthread_mutex_t pageTableLock;
+
+struct PageTable pageTable;
+struct TLB tlb;
+FILE *backingStore;
 
 // pages and pageNumbers are associated with eachother by their index
 struct PageTable{
@@ -46,6 +57,8 @@ int GetPageOffSet(int);
 int *ReadAddresses(char *fileName, int *addressCount);
 char *ReadPage(FILE *, int);
 
+void *checkMemory(void *arg);
+
 int main(int argc, char **argv)
 {
 
@@ -54,7 +67,7 @@ int main(int argc, char **argv)
 	}
 
 	// Open BACKING_STORE.bin into a file
-	FILE *backingStore = NULL;
+	backingStore = NULL;
 	backingStore = fopen("BACKING_STORE.bin", "r");
 
 	if(backingStore == NULL){
@@ -66,11 +79,9 @@ int main(int argc, char **argv)
 
 
 	// Declare and initialize the PageTable
-	struct PageTable pageTable;
 	ClearPageNumbers(&pageTable);
 
 	// Declare and initialize the TLB
-	struct TLB tlb;
 	ClearTLB(&tlb);
 
 
@@ -78,7 +89,7 @@ int main(int argc, char **argv)
 	int *addresses, addressCount;
 	addresses = ReadAddresses(argv[1], &addressCount);
 
-	int numAddresses = addressCount;
+	numAddresses = addressCount;
 
 	// Reading in the addresses failed, exit the program.
 	if(addresses == NULL){
@@ -86,53 +97,26 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	int addressCursor;
-	int pageFaults = 0, TLBHits = 0;
-	// Main loop, go through each address
+	pthread_mutex_init(&cursorLock, NULL);
+	pthread_mutex_init(&pageTableLock, NULL);
 
-	for(addressCursor = 0; addressCursor < numAddresses; addressCursor++)
+	pthread_t memoryThreads[MAX_CONCURRENT];
+
+	int i;
+
+	// Create row, column, and block threads
+	for(i = 0; i < MAX_CONCURRENT; i++)
 	{
-		// Read in the next address
-		int address = addresses[addressCursor];
+		if(pthread_create(&memoryThreads[i], NULL, checkMemory, (&addresses) ))
+			printf("Couldn't create thread for memoryThread %d.\n", i);
 
-		// Find the pageNumber and Offset
-		int pageNumber = GetPageNumber(address);
-		int pageOffset = GetPageOffSet(address);
+	}
 
-		char *page;
-
-		// Check to see if the TLB contains a quick conversion from pageNumber to frameNumber
-		int frameNumber = CheckTLB(&tlb, pageNumber);
-	
-		// frameNumber was not found in the TLB, so try looking if it's
-		// in the pagetable
-		if(frameNumber == -1){
-			frameNumber = FindPageIndex(&pageTable, pageNumber);
-		}
-		else{
-			TLBHits++;
-		}
-
-		// Framenumber found in the page tables.
-		if(frameNumber != -1){
-			page = pageTable.pages[frameNumber];
-		}
-		// frameNumber was not even in the pageTable, so read it from the backingStore
-		else{
-			page = ReadPage(backingStore, pageNumber);
-			frameNumber= UpdatePageTable(&pageTable, page, pageNumber);
-			pageFaults++;
-		}
-
-
-		// Print out the translations and the value
-		printf("Virtual address: %d ", address);
-		printf("Physical address: %d ", (frameNumber * 0x100 ) + pageOffset);
-		printf("Value: %d\n", page[pageOffset]);
-
-
-		// Update the TLB with the pageNumber to frameNumber translation
-		UpdateTLB(&tlb, pageNumber, frameNumber);
+	// Start execution on all of the threads
+	for(i = 0; i < MAX_CONCURRENT; i++)
+	{
+		if(pthread_join(memoryThreads[i], NULL))
+			printf("Couldn't create thread for memoryThread %d.\n", i);
 	}
 
 	printf("Number of Translated Addresses = %d\n", numAddresses);
@@ -382,5 +366,61 @@ char *ReadPage(FILE *backingStore, int offset)
 	}
 
 	return buffer;
+
+}
+
+
+void *checkMemory(void *arg)
+{
+	int **addresses = arg;
+
+	while (addressCursor < numAddresses) {
+		// Read in the next address
+		pthread_mutex_lock(&cursorLock);
+		int address = (*addresses)[addressCursor++];
+		pthread_mutex_unlock(&cursorLock);
+
+		// Find the pageNumber and Offset
+		int pageNumber = GetPageNumber(address);
+		int pageOffset = GetPageOffSet(address);
+
+		char *page;
+
+		// Check to see if the TLB contains a quick conversion from pageNumber to frameNumber
+		pthread_mutex_lock(&pageTableLock);
+		int frameNumber = CheckTLB(&tlb, pageNumber);
+
+		// frameNumber was not found in the TLB, so try looking if it's
+		// in the pagetable
+		if(frameNumber == -1){
+			frameNumber = FindPageIndex(&pageTable, pageNumber);
+		}
+		else{
+			TLBHits++;
+		}
+
+		// Framenumber found in the page tables.
+		if(frameNumber != -1){
+			page = pageTable.pages[frameNumber];
+		}
+		// frameNumber was not even in the pageTable, so read it from the backingStore
+		else{
+			page = ReadPage(backingStore, pageNumber);
+			frameNumber= UpdatePageTable(&pageTable, page, pageNumber);
+			pageFaults++;
+		}
+
+
+		// Print out the translations and the value
+		printf("Virtual address: %d ", address);
+		printf("Physical address: %d ", (frameNumber * 0x100 ) + pageOffset);
+		printf("Value: %d\n", page[pageOffset]);
+
+
+		// Update the TLB with the pageNumber to frameNumber translation
+		UpdateTLB(&tlb, pageNumber, frameNumber);
+		pthread_mutex_unlock(&pageTableLock);
+	}
+
 
 }
