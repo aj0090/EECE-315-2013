@@ -1,33 +1,27 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "monitor.h"
 
-void readCPUInfo(void);
-void readKernelVersion(void);
-void readUptime(void);
-
+// Displays information about the system
+// Param: none|-l string<int> string<int>
+// Return: 0
 int main(int argc, char *argv[]) {
     // v1:
-    // processor type /proc/cpuinfo
-    // kernel version /proc/sys/kernel/version
-    // uptime /proc/uptime
-    //
+    readCPUInfo();
+    readKernelVersion();
+    readUptime();
+
     // v2:
     // time in: user mode, system (kernel?) mode, idle (/proc/uptime value 2)
     // number of disk io
     // number of context switches
     // time system was booted (calculate?)
     // number of processes created since boot
-    //
+
     // v3:
     // amount of memory configured /proc/meminfo
     // amount of memory available /proc/meminfo
     // list of load averages (default? averaged over last min)
     // monitor -l 2 60 => observe 60s, sampling every 2s to scan multiple values: fscanf(fp, "%s %s", string1, string2);
 
-    readCPUInfo();
-    readKernelVersion();
-    readUptime();
     return 0;
 }
 
