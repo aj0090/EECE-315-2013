@@ -4,7 +4,7 @@
 
 
 #define PAGESIZE 256
-#define PAGECOUNT 256
+#define PAGECOUNT 128
 #define TLBSIZE 16
 #define MAX_ADDRESSES 2000
 
@@ -13,7 +13,8 @@
 struct PageTable{
 	char *pages[PAGECOUNT];
 	int pageNumbers[PAGECOUNT];
-	int pageCount;	
+	int pageCount;
+	int ageCounter[PAGECOUNT];
 };
 
 
@@ -36,7 +37,8 @@ void UpdateTLB(struct TLB *, int, int);
 void ClearPageNumbers(struct PageTable *);
 int FindPageIndex(struct PageTable *, int p);
 int AddPage(struct PageTable *, char *, int);
-void FreePageTable(struct PageTable *, int freeArray[], int size);
+int UpdatePageTable(struct PageTable *pageTable, char *page, int pageNumber);
+void FreePageTable(struct PageTable *);
 
 int GetPageNumber(int);
 int GetPageOffSet(int);
@@ -86,12 +88,10 @@ int main(int argc, char **argv)
 
 	int addressCursor;
 	int pageFaults = 0, TLBHits = 0;
-	int freeArray[PAGECOUNT] = { 0 };
 	// Main loop, go through each address
 
 	for(addressCursor = 0; addressCursor < numAddresses; addressCursor++)
 	{
-		int needsFree = 0;
 		// Read in the next address
 		int address = addresses[addressCursor];
 
@@ -120,8 +120,7 @@ int main(int argc, char **argv)
 		// frameNumber was not even in the pageTable, so read it from the backingStore
 		else{
 			page = ReadPage(backingStore, pageNumber);
-			needsFree = 1;
-			frameNumber= AddPage(&pageTable, page, pageNumber);
+			frameNumber= UpdatePageTable(&pageTable, page, pageNumber);
 			pageFaults++;
 		}
 
@@ -134,9 +133,6 @@ int main(int argc, char **argv)
 
 		// Update the TLB with the pageNumber to frameNumber translation
 		UpdateTLB(&tlb, pageNumber, frameNumber);
-
-		if (needsFree)
-			freeArray[frameNumber] = 1;
 	}
 
 	printf("Number of Translated Addresses = %d\n", numAddresses);
@@ -149,7 +145,7 @@ int main(int argc, char **argv)
 	
 	free(addresses);
 
-	FreePageTable(&pageTable, freeArray, PAGECOUNT);
+	FreePageTable(&pageTable);
 
 	fclose(backingStore);
 }
@@ -166,7 +162,7 @@ void ClearTLB(struct TLB *tlb)
 	for (i = 0; i < TLBSIZE; i++) {
 		tlb->frameNumbers[i] = -1;
 		tlb->pageNumbers[i] = -1;
-		tlb->ageCounter[i] = -1;
+		tlb->ageCounter[i] = 0;
 	}
 	return;
 }
@@ -214,7 +210,7 @@ void UpdateTLB(struct TLB *tlb, int pageNumber, int frameNumber)
 		tlb->tlbCount++;
 	}
 
-	for (i = 0; i <= tlb->tlbCount; i++) {
+	for (i = 0; i < tlb->tlbCount; i++) {
 		tlb->ageCounter[i]++;
 	}	
 
@@ -232,6 +228,7 @@ void ClearPageNumbers(struct PageTable *pageTable)
 	int i;
 	for (i = 0; i < PAGECOUNT; i++) {
 		pageTable->pageNumbers[i] = -1;
+		pageTable->ageCounter[i] = 0;
 	}	
 
 	return;
@@ -266,19 +263,52 @@ int AddPage(struct PageTable *pageTable, char *page, int pageNumber)
 	return pageTable->pageCount - 1;
 }
 
+// REQUIRES: pageNumber is between 0 and PAGECOUNT
+// MODIFIES: pageTable
+// EFFECTS: Updates the pageTable with new page and evicts the oldest one when needed
+int UpdatePageTable(struct PageTable *pageTable, char *page, int pageNumber)
+{
+	int i;
+	int max = 0;
+	int oldestIndex = 0;
+	int frameNumber;
+	if (pageTable->pageCount == PAGECOUNT)
+	{
+		for (i = 0; i < PAGECOUNT; i++) {
+			if (pageTable->ageCounter[i] >= max) {
+				max = pageTable->ageCounter[i];
+				oldestIndex = i;
+			}
+		}
+		free(pageTable->pages[oldestIndex]);
+		pageTable->pages[oldestIndex] = page;
+		pageTable->pageNumbers[oldestIndex] = pageNumber;
+		pageTable->ageCounter[oldestIndex] = 0;
+		frameNumber = oldestIndex;
+	} else {
+		pageTable->pages[pageTable->pageCount] = page;
+		pageTable->pageNumbers[pageTable->pageCount] = pageNumber;
+		frameNumber = pageTable->pageCount;
+		pageTable->pageCount++;
+	}
+
+	for (i = 0; i < pageTable->pageCount; i++) {
+		pageTable->ageCounter[i]++;
+	}	
+
+	return frameNumber;
+}
+
 
 // REQUIRES: none
 // MODIFIES: pageTable
 // EFFECTS: Frees the memory allocated to each specific page stored
 // in the pageTable.
-void FreePageTable(struct PageTable *pageTable, int freeArray[], int size)
+void FreePageTable(struct PageTable *pageTable)
 {
 	int i;
-	for (i = 0; i < size; ++i)
-	{
-		if (freeArray[i])
-			free(pageTable->pages[i]);
-	}
+	for (i = 0; i < pageTable->pageCount; ++i)
+		free(pageTable->pages[i]);
 
 	return;
 }
@@ -336,7 +366,7 @@ int* ReadAddresses(char *fileName, int *addressCount)
 // If fread() fails, return NULL
 char *ReadPage(FILE *backingStore, int offset)
 {
-	if(offset < 0 || offset >= PAGECOUNT)
+	if(offset < 0 || offset >= PAGESIZE)
 	{
 		printf("Address not in range (inside ReadPage)\n");
 		return NULL;
@@ -344,7 +374,7 @@ char *ReadPage(FILE *backingStore, int offset)
 
 	char *buffer = malloc(PAGESIZE);
 
-	fseek(backingStore, offset*PAGECOUNT, SEEK_SET);
+	fseek(backingStore, offset*PAGESIZE, SEEK_SET);
 
 	if(!fread(buffer, sizeof(char), PAGESIZE, backingStore))
 	{
