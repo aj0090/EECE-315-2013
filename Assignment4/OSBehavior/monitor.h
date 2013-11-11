@@ -14,6 +14,7 @@
 // Struct definitions
 
 // Function Prototypes
+int identify_args(int argc, char * argv[]);
 void readCPUInfo(void);
 void readKernelVersion(void);
 void readUptime(void);

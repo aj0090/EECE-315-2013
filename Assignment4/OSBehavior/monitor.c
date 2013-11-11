@@ -1,13 +1,19 @@
 #include "monitor.h"
 
+
 // Displays information about the system
 // Param: none|-l string<int> string<int>
 // Return: 0
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
+    int version = identify_args(argc, argv);
     // v1:
-    readCPUInfo();
-    readKernelVersion();
-    readUptime();
+    if (version == 1)
+    {
+        readCPUInfo();
+        readKernelVersion();
+        readUptime();
+    }
 
     // v2:
     // time in: user mode, system (kernel?) mode, idle (/proc/uptime value 2)
@@ -25,10 +31,52 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+
+// Validates passed arguments
+// Param: argc is number of arguments, argv is array of arguments
+// Return: (int) which version of program to run
+int identify_args(int argc, char *argv[])
+{
+    int i;
+
+    switch (argc)
+    {
+    case 2:
+        if (!strcmp("-v1", argv[1]))
+            return 1;
+        else if (!strcmp("-v2", argv[1]))
+            return 2;
+        else
+        {
+            printf("Invalid version argument.\n");
+            exit(1);
+        }
+    case 4:
+        if (strcmp("-v3", argv[1]))
+        {
+            printf("Invalid version argument.\n");
+            exit(1);
+        }
+        else
+            for (i = 2; i <= 3; i++)
+                if (!atof(argv[i]))
+                {
+                    printf("Invalid parameters (must be numbers).\n");
+                    exit(1);
+                }
+        return 3;
+    default:
+        printf("Invalid number of arguments.\n");
+        exit(1);
+    }
+}
+
+
 // Prints the kernel version
 // Param: none
 // Return: none
-void readKernelVersion(void) {
+void readKernelVersion(void)
+{
     char version[100];
 
     FILE *fp;
@@ -40,10 +88,12 @@ void readKernelVersion(void) {
     fclose(fp);
 }
 
+
 // Prints the processor type
 // Param: none
 // Return: none
-void readCPUInfo(void) {
+void readCPUInfo(void)
+{
     char line[500];
     size_t length = 0;
     ssize_t read;
@@ -55,14 +105,18 @@ void readCPUInfo(void) {
     FILE *fp;
     fp = fopen("/proc/cpuinfo", "r");
     if (!fp) exit(0);
-    while (fgets(line, sizeof(line), fp) != NULL) {
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
         strcpy(key, "n/a");
         strcpy(value, "n/a");
-        if (sscanf(line, " %[^:]: %[^\n]", key, value) > 0) {
-            if (strstr(key, "processor")) {
+        if (sscanf(line, " %[^:]: %[^\n]", key, value) > 0)
+        {
+            if (strstr(key, "processor"))
+            {
                 printf("Processor %s is a ", value);
             }
-            if (strstr(key, "model name")) {
+            if (strstr(key, "model name"))
+            {
                 printf("%s\n", value);
             }
         }
@@ -73,10 +127,12 @@ void readCPUInfo(void) {
     fclose(fp);
 }
 
+
 // Prints the uptime of the system
 // Param: none
 // Return: none
-void readUptime(void) {
+void readUptime(void)
+{
     char uptime[10]; // enough digits for ~115 days
     double uptimeSec, uptimeMin, uptimeHr, uptimeDay = 0;
 
