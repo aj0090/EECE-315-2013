@@ -7,12 +7,14 @@
 int main(int argc, char *argv[])
 {
     int version = identify_args(argc, argv);
+    int numProc;
+
     // v1:
-    if (version == 1)
+    if (version >= 1)
     {
-        readCPUInfo();
+        numProc = readCPUInfo();
         readKernelVersion();
-        readUptime();
+        readUptime("uptime", -1);
     }
 
     // v2:
@@ -21,6 +23,11 @@ int main(int argc, char *argv[])
     // number of context switches
     // time system was booted (calculate?)
     // number of processes created since boot
+    if (version >= 2)
+    {
+        printf("\n");
+        readUptime("idleTime", numProc);
+    }
 
     // v3:
     // amount of memory configured /proc/meminfo
@@ -29,46 +36,6 @@ int main(int argc, char *argv[])
     // monitor -l 2 60 => observe 60s, sampling every 2s to scan multiple values: fscanf(fp, "%s %s", string1, string2);
 
     return 0;
-}
-
-
-// Validates passed arguments
-// Param: argc is number of arguments, argv is array of arguments
-// Return: (int) which version of program to run
-int identify_args(int argc, char *argv[])
-{
-    int i;
-
-    switch (argc)
-    {
-    case 2:
-        if (!strcmp("-v1", argv[1]))
-            return 1;
-        else if (!strcmp("-v2", argv[1]))
-            return 2;
-        else
-        {
-            printf("Invalid version argument.\n");
-            exit(1);
-        }
-    case 4:
-        if (strcmp("-v3", argv[1]))
-        {
-            printf("Invalid version argument.\n");
-            exit(1);
-        }
-        else
-            for (i = 2; i <= 3; i++)
-                if (!atof(argv[i]))
-                {
-                    printf("Invalid parameters (must be numbers).\n");
-                    exit(1);
-                }
-        return 3;
-    default:
-        printf("Invalid number of arguments.\n");
-        exit(1);
-    }
 }
 
 
@@ -91,9 +58,10 @@ void readKernelVersion(void)
 
 // Prints the processor type
 // Param: none
-// Return: none
-void readCPUInfo(void)
+// Return: (int) Number of processors
+int readCPUInfo(void)
 {
+    int numProc;
     char line[500];
     size_t length = 0;
     ssize_t read;
@@ -114,6 +82,7 @@ void readCPUInfo(void)
             if (strstr(key, "processor"))
             {
                 printf("Processor %s is a ", value);
+                numProc = atoi(value);
             }
             if (strstr(key, "model name"))
             {
@@ -125,28 +94,42 @@ void readCPUInfo(void)
     if (key) free(key);
     if (value) free(value);
     fclose(fp);
+
+    return numProc + 1;
 }
 
 
-// Prints the uptime of the system
-// Param: none
-// Return: none
-void readUptime(void)
+// Prints the uptime of the system, or idleTime if requested
+// Param: val is string representing what value to print, numProc number of processors
+// Return: 0 is success, -1 is invalid val
+int readUptime(char *val, int numProc)
 {
-    char uptime[10]; // enough digits for ~115 days
-    double uptimeSec, uptimeMin, uptimeHr, uptimeDay = 0;
+    char dest[80];
+    char uptime[10], idleTime[10]; // enough digits for ~115 days
+    double uptimeSec, idleTimeSec;
 
     FILE *fp;
     fp = fopen("/proc/uptime", "r");
     if (!fp) exit(0);
-    fscanf(fp, "%s", uptime);
+    fscanf(fp, "%s %s", uptime, idleTime);
+    fclose(fp);
 
     uptimeSec = atof(uptime);
-    uptimeMin = uptimeSec / 60;
-    uptimeHr = uptimeMin / 60;
-    uptimeDay = uptimeHr / 24;
+    idleTimeSec = atof(idleTime);
 
-    /*printf("Uptime: %.2f (seconds), %.2f (minutes), %.2f (hours), %.2f (days).\n", uptimeSec, uptimeMin, uptimeHr, uptimeDay);*/
-    printf("Uptime: %.2f seconds\n", uptimeSec);
-    fclose(fp);
+    if (!strcmp("uptime", val))
+    {
+        reprTime(uptimeSec, dest);
+        printf("Uptime: %s\n", dest);
+        return 0;
+    }
+    else if (!strcmp("idleTime", val))
+    {
+        // Divide by the number of processor cores to get the actual idle time
+        reprTime(idleTimeSec / numProc, dest);
+        printf("System idle time: %s\n", dest);
+        return 0;
+    }
+    else
+        return -1;
 }
