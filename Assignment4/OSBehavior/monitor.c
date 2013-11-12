@@ -12,8 +12,8 @@ int main(int argc, char *argv[])
     // v1:
     if (version >= 1)
     {
-        printf("Version 1\n");
-        printf("=========\n");
+        printf("Basic Information\n");
+        printf("=================\n");
 
         numProc = readCPUInfo();
         printf("\n");
@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     // number of processes created since boot
     if (version >= 2)
     {
-        printf("Version 2\n");
-        printf("=========\n");
+        printf("Advanced Information\n");
+        printf("====================\n");
 
         readStat(numProc);
         printf("\n");
@@ -56,13 +56,15 @@ int main(int argc, char *argv[])
     // amount of memory available /proc/meminfo
     // list of load averages (default? averaged over last min)
     // monitor -l 2 60 => observe 60s, sampling every 2s to scan multiple
-    //      values: fscanf(fp, "%s %s", string1, string2);
     if (version >= 3)
     {
-        printf("Version 3\n");
-        printf("=========\n");
+        printf("Further Advanced Information\n");
+        printf("============================\n");
 
         readMemInfo();
+        printf("\n");
+
+        readLoadAvg(atof(argv[2]), atof(argv[3]));
         printf("\n");
     }
 
@@ -347,6 +349,33 @@ void readMemInfo()
 
     printf("Total configured memory: %d kb\n\n", memTotal);
     printf("Memory currently available: %d kb\n", memFree);
+}
+
+
+// Publishes load averages every sleepTime seconds, for runTime seconds
+// Param: sleepTime is publication interval in seconds, runTime is total run time
+// Return: none
+void readLoadAvg(double sleepTime, double runTime)
+{
+    FILE *fp;
+    char load[10];
+
+    printf("Publishing load averages every %.2f seconds for the next %.2f seconds"
+           " (each averaged over the last minute):\n", sleepTime, runTime);
+
+    float timeRemaining = runTime;
+    while (timeRemaining > 0)
+    {
+        fp = fopen("/proc/loadavg", "r");
+        if (!fp) exit(0);
+        fscanf(fp, "%s", load);
+        fclose(fp);
+        printf("%s ", load);
+        fflush(stdout);
+
+        usleep(sleepTime * 1E6);
+        timeRemaining -= sleepTime;
+    }
 }
 
 
