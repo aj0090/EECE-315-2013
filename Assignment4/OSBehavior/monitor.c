@@ -12,9 +12,14 @@ int main(int argc, char *argv[])
     // v1:
     if (version >= 1)
     {
+        printf("Version 1\n");
+        printf("=========\n");
         numProc = readCPUInfo();
+        printf("\n");
         readKernelVersion();
+        printf("\n");
         readUptime("uptime", -1);
+        printf("\n");
     }
 
     // v2:
@@ -25,8 +30,9 @@ int main(int argc, char *argv[])
     // number of processes created since boot
     if (version >= 2)
     {
-        printf("\n");
-        readUptime("idleTime", numProc);
+        printf("Version 2\n");
+        printf("=========\n");
+        readStat(numProc);
     }
 
     // v3:
@@ -53,6 +59,54 @@ void readKernelVersion(void)
 
     printf("Kernel version: %s\n", version);
     fclose(fp);
+}
+
+
+// Prints "The amount of time the processor has spent in user  mode, system mode, and the
+//         amount of time the system was idle"
+// Param: numProc is the number of processors
+// Return: none
+void readStat(int numProc)
+{
+    char dest[80];
+    char dest2[80];
+    char line[500];
+    float userTime, systemTime, idleTime;
+    int i;
+    char *token;
+
+    const int USER_HZ = sysconf(_SC_CLK_TCK);
+
+    FILE *fp;
+    fp = fopen("/proc/stat", "r");
+    if (!fp) exit(0);
+
+    fgets(line, sizeof(line), fp);
+
+    token = strtok(line, " ");
+    i = 0;
+    while (token != NULL)
+    {
+        if (i == 1)
+            userTime = atof(token) / USER_HZ;
+        else if (i == 3)
+            systemTime = atof(token) / USER_HZ;
+        else if (i == 4)
+            idleTime = atof(token) / USER_HZ;
+        token = strtok(NULL, " ");
+        i++;
+    }
+
+    reprTime(userTime, dest);
+    reprTime(userTime / numProc, dest2);
+    printf("(System time, Processor time) in user mode: (%s, %s)\n", dest2, dest);
+    reprTime(systemTime, dest);
+    reprTime(systemTime / numProc, dest2);
+    printf("(System time, Processor time) in system mode: (%s, %s)\n", dest2, dest);
+    reprTime(idleTime, dest);
+    reprTime(idleTime / numProc, dest2);
+    printf("(System time, Processor time) spent idle: (%s, %s)\n", dest2, dest);
+
 }
 
 
