@@ -18,5 +18,6 @@ void readStat(int numProc);
 void readDiskStats();
 void getContextSwitches();
 void getBootTime();
+void getProcessesCreated();
 
 #endif

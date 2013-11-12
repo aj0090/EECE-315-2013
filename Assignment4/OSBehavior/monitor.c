@@ -14,10 +14,13 @@ int main(int argc, char *argv[])
     {
         printf("Version 1\n");
         printf("=========\n");
+
         numProc = readCPUInfo();
         printf("\n");
+
         readKernelVersion();
         printf("\n");
+
         readUptime("uptime", -1);
         printf("\n\n");
     }
@@ -32,13 +35,20 @@ int main(int argc, char *argv[])
     {
         printf("Version 2\n");
         printf("=========\n");
+
         readStat(numProc);
         printf("\n");
+
         readDiskStats();
         printf("\n");
+
         getContextSwitches();
         printf("\n");
+
         getBootTime();
+
+        getProcessesCreated();
+        printf("\n\n");
     }
 
     // v3:
@@ -239,6 +249,44 @@ void getBootTime()
     fclose(fp);
 
     printf("System was last booted at: %s\n", ctime(&bootTime));
+}
+
+
+// Prints "The number of processes that have been created since the system was booted"
+// Param: none
+// Return: none
+void getProcessesCreated()
+{
+    bool isLine = false;
+    char line[500];
+    char *token;
+    int processes, i;
+
+    FILE *fp;
+    fp = fopen("/proc/stat", "r");
+    if (!fp) exit(0);
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, " ");
+        i = 0;
+        while (token != NULL)
+        {
+            if (!strcmp(token, "processes"))
+                isLine = true;
+            if (isLine && i == 1)
+            {
+                processes = atoi(token);
+            }
+            token = strtok(NULL, " ");
+            i++;
+        }
+        if (isLine)
+            break;
+    }
+    fclose(fp);
+
+    printf("Processes created since boot: %d\n", processes);
 }
 
 
