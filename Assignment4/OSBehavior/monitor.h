@@ -2,20 +2,22 @@
 #define MONITOR_H
 
 // Includes
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "headers.h"
+#include "utils.h"
+#include <time.h>
 
 // Constants
-
-// Define VERBOSE to 1 for debugging outputs
-#define VERBOSE 0
 
 // Struct definitions
 
 // Function Prototypes
-void readCPUInfo(void);
+int readCPUInfo(void);
 void readKernelVersion(void);
-void readUptime(void);
+void readUptime();
+void readStat(int numProc);
+void readDiskStats();
+void getContextSwitches();
+void getBootTime();
+void getProcessesCreated();
 
 #endif
