@@ -4,7 +4,6 @@
 // Includes
 #include "headers.h"
 #include "utils.h"
-#include <time.h>
 
 // Constants
 
