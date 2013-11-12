@@ -7,6 +7,9 @@
 int identify_args(int argc, char *argv[])
 {
     int i;
+    const char usage[] = "Usage: ./monitor -v[1..3] [sleepTime] [runTime]\n"
+                         "e.g.,  ./monitor -v2\n"
+                         "e.g.,  ./monitor -v3 0.5 5";
 
     switch (argc)
     {
@@ -15,27 +18,32 @@ int identify_args(int argc, char *argv[])
             return 1;
         else if (!strcmp("-v2", argv[1]))
             return 2;
+        else if (!strcmp("-v3", argv[1]))
+        {
+            printf("-v3 needs two additional arguments.\n\n%s\n", usage);
+            exit(1);
+        }
         else
         {
-            printf("Invalid version argument.\n");
+            printf("Invalid version argument.\n\n%s\n", usage);
             exit(1);
         }
     case 4:
         if (strcmp("-v3", argv[1]))
         {
-            printf("Invalid version argument.\n");
+            printf("Invalid version argument.\n\n%s\n", usage);
             exit(1);
         }
         else
             for (i = 2; i <= 3; i++)
                 if (!atof(argv[i]))
                 {
-                    printf("Invalid parameters (must be numbers).\n");
+                    printf("Invalid parameters (must be numbers).\n\n%s\n", usage);
                     exit(1);
                 }
         return 3;
     default:
-        printf("Invalid number of arguments.\n");
+        printf("Invalid number of arguments.\n\n%s\n", usage);
         exit(1);
     }
 }
