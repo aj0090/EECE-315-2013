@@ -390,7 +390,7 @@ int readCPUInfo(void)
     ssize_t read;
 
     char *key, *value;
-    key = malloc(10 * sizeof(char));
+    key = malloc(100 * sizeof(char));
     value = malloc(1000 * sizeof(char));
 
     FILE *fp;
