@@ -14,5 +14,6 @@ int readCPUInfo(void);
 void readKernelVersion(void);
 int readUptime(char *val, int numProc);
 void readStat(int numProc);
+void readDiskStats();
 
 #endif

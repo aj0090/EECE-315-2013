@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
         readKernelVersion();
         printf("\n");
         readUptime("uptime", -1);
-        printf("\n");
+        printf("\n\n");
     }
 
     // v2:
@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
         printf("Version 2\n");
         printf("=========\n");
         readStat(numProc);
+        printf("\n");
+        readDiskStats();
     }
 
     // v3:
@@ -107,6 +109,53 @@ void readStat(int numProc)
     reprTime(idleTime / numProc, dest2);
     printf("(System time, Processor time) spent idle: (%s, %s)\n", dest2, dest);
 
+}
+
+
+// Prints "The number of disk read/write requests made on the system"
+// Param: none
+// Return: none
+void readDiskStats()
+{
+    // https://www.kernel.org/doc/Documentation/iostats.txt
+    bool is_sdaLine = false;
+    int completedReads, completedWrites, mergedReads, mergedWrites = 0;
+    int i;
+    char *token;
+    char line[500];
+
+    FILE *fp;
+    fp = fopen("/proc/diskstats", "r");
+    if (!fp) exit(0);
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, " ");
+        i = 0;
+        while (token != NULL)
+        {
+            if (i == 2 && !strcmp(token, "sda"))
+                is_sdaLine = true;
+            if (is_sdaLine && i > 2)
+            {
+                if (i - 2 == 1)
+                    completedReads = atoi(token);
+                else if (i - 2 == 2)
+                    mergedReads = atoi(token);
+                else if (i - 2 == 5)
+                    completedWrites = atoi(token);
+                else if (i - 2 == 6)
+                    mergedWrites = atoi(token);
+            }
+            token = strtok(NULL, " ");
+            i++;
+        }
+        if (is_sdaLine)
+            break;
+    }
+
+    printf("Disk read/write requests made on the system: %d/%d\n",
+           completedReads + mergedReads, completedWrites + mergedWrites);
 }
 
 
