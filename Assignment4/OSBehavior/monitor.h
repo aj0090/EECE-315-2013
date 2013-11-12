@@ -19,5 +19,6 @@ void readDiskStats();
 void getContextSwitches();
 void getBootTime();
 void getProcessesCreated();
+void readMemInfo();
 
 #endif
