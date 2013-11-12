@@ -12,8 +12,8 @@ int main(int argc, char *argv[])
     // v1:
     if (version >= 1)
     {
-        printf("Version 1\n");
-        printf("=========\n");
+        printf("Basic Information\n");
+        printf("=================\n");
 
         numProc = readCPUInfo();
         printf("\n");
@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
     // number of processes created since boot
     if (version >= 2)
     {
-        printf("Version 2\n");
-        printf("=========\n");
+        printf("Advanced Information\n");
+        printf("====================\n");
 
         readStat(numProc);
         printf("\n");
@@ -55,7 +55,18 @@ int main(int argc, char *argv[])
     // amount of memory configured /proc/meminfo
     // amount of memory available /proc/meminfo
     // list of load averages (default? averaged over last min)
-    // monitor -l 2 60 => observe 60s, sampling every 2s to scan multiple values: fscanf(fp, "%s %s", string1, string2);
+    // monitor -l 2 60 => observe 60s, sampling every 2s to scan multiple
+    if (version >= 3)
+    {
+        printf("Further Advanced Information\n");
+        printf("============================\n");
+
+        readMemInfo();
+        printf("\n");
+
+        readLoadAvg(atof(argv[2]), atof(argv[3]));
+        printf("\n");
+    }
 
     return 0;
 }
@@ -78,8 +89,8 @@ void readKernelVersion(void)
 }
 
 
-// Prints "The amount of time the processor has spent in user  mode, system mode, and the
-//         amount of time the system was idle"
+// Prints "The amount of time the processor has spent in user  mode,
+//         system mode, and the amount of time the system was idle"
 // Param: numProc is the number of processors
 // Return: none
 void readStat(int numProc)
@@ -116,13 +127,16 @@ void readStat(int numProc)
 
     reprTime(userTime, dest);
     reprTime(userTime / numProc, dest2);
-    printf("(System time, Processor time) in user mode: (%s, %s)\n", dest2, dest);
+    printf("(System time, Processor time) in user mode: (%s, %s)\n",
+           dest2, dest);
     reprTime(systemTime, dest);
     reprTime(systemTime / numProc, dest2);
-    printf("(System time, Processor time) in system mode: (%s, %s)\n", dest2, dest);
+    printf("(System time, Processor time) in system mode: (%s, %s)\n",
+           dest2, dest);
     reprTime(idleTime, dest);
     reprTime(idleTime / numProc, dest2);
-    printf("(System time, Processor time) spent idle: (%s, %s)\n", dest2, dest);
+    printf("(System time, Processor time) spent idle: (%s, %s)\n",
+           dest2, dest);
 
 }
 
@@ -252,7 +266,8 @@ void getBootTime()
 }
 
 
-// Prints "The number of processes that have been created since the system was booted"
+// Prints "The number of processes that have been created since the system
+//         was booted"
 // Param: none
 // Return: none
 void getProcessesCreated()
@@ -287,6 +302,80 @@ void getProcessesCreated()
     fclose(fp);
 
     printf("Processes created since boot: %d\n", processes);
+}
+
+
+// Prints total, and free memory
+// Param: none
+// Return: none
+void readMemInfo()
+{
+    bool isLine1, isLine2 = false;
+    char line[500];
+    char *token;
+    int memTotal, memFree, i;
+
+    FILE *fp;
+    fp = fopen("/proc/meminfo", "r");
+    if (!fp) exit(0);
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, " ");
+        i = 0;
+        while (token != NULL)
+        {
+            if (!strcmp(token, "MemTotal:"))
+                isLine1 = true;
+            if (isLine1 && i == 1)
+            {
+                memTotal = atoi(token);
+                isLine1 = false;
+            }
+            if (!strcmp(token, "MemFree:"))
+                isLine2 = true;
+            if (isLine2 && i == 1)
+            {
+                memFree = atoi(token);
+                isLine2 = false;
+            }
+            token = strtok(NULL, " ");
+            i++;
+        }
+        if (isLine2)
+            break;
+    }
+    fclose(fp);
+
+    printf("Total configured memory: %d kb\n\n", memTotal);
+    printf("Memory currently available: %d kb\n", memFree);
+}
+
+
+// Publishes load averages every sleepTime seconds, for runTime seconds
+// Param: sleepTime is publication interval in seconds, runTime is total run time
+// Return: none
+void readLoadAvg(double sleepTime, double runTime)
+{
+    FILE *fp;
+    char load[10];
+
+    printf("Publishing load averages every %.2f seconds for the next %.2f seconds"
+           " (each averaged over the last minute):\n", sleepTime, runTime);
+
+    float timeRemaining = runTime;
+    while (timeRemaining > 0)
+    {
+        fp = fopen("/proc/loadavg", "r");
+        if (!fp) exit(0);
+        fscanf(fp, "%s", load);
+        fclose(fp);
+        printf("%s ", load);
+        fflush(stdout);
+
+        usleep(sleepTime * 1E6);
+        timeRemaining -= sleepTime;
+    }
 }
 
 

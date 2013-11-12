@@ -19,5 +19,7 @@ void readDiskStats();
 void getContextSwitches();
 void getBootTime();
 void getProcessesCreated();
+void readMemInfo();
+void readLoadAvg(double sleepTime, double runTime);
 
 #endif
