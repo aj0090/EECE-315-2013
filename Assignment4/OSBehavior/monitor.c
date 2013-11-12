@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         readKernelVersion();
         printf("\n");
 
-        readUptime("uptime", -1);
+        readUptime();
         printf("\n\n");
     }
 
@@ -333,37 +333,23 @@ int readCPUInfo(void)
 }
 
 
-// Prints the uptime of the system, or idleTime if requested
-// Param: val is string representing what value to print, numProc number of processors
-// Return: 0 is success, -1 is invalid val
-int readUptime(char *val, int numProc)
+// Prints the uptime of the system
+// Param: none
+// Return: none
+void readUptime()
 {
     char dest[80];
-    char uptime[10], idleTime[10]; // enough digits for ~115 days
-    double uptimeSec, idleTimeSec;
+    char uptime[10]; // enough digits for ~115 days
+    double uptimeSec;
 
     FILE *fp;
     fp = fopen("/proc/uptime", "r");
     if (!fp) exit(0);
-    fscanf(fp, "%s %s", uptime, idleTime);
+    fscanf(fp, "%s", uptime);
     fclose(fp);
 
     uptimeSec = atof(uptime);
-    idleTimeSec = atof(idleTime);
 
-    if (!strcmp("uptime", val))
-    {
-        reprTime(uptimeSec, dest);
-        printf("Uptime: %s\n", dest);
-        return 0;
-    }
-    else if (!strcmp("idleTime", val))
-    {
-        // Divide by the number of processor cores to get the actual idle time
-        reprTime(idleTimeSec / numProc, dest);
-        printf("System idle time: %s\n", dest);
-        return 0;
-    }
-    else
-        return -1;
+    reprTime(uptimeSec, dest);
+    printf("Uptime: %s\n", dest);
 }
