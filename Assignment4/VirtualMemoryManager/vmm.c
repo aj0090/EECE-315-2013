@@ -220,7 +220,6 @@ int CheckTLB(struct TLB *tlb, int pageNumber)
 		if (tlb->pageNumbers[i] == pageNumber)
 			return tlb->frameNumbers[i];
 	}
-	//TODO: IMPLEMENT ME
 	return -1;
 }
 
@@ -288,7 +287,6 @@ int FindPageIndex(struct PageTable *pageTable, int pageNumber)
 		if (pageTable->pageNumbers[i] == pageNumber)
 			return i;
 	}	
-	//TODO: IMPLEMENT ME
 	return -1;
 }
 
