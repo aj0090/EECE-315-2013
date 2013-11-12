@@ -4,6 +4,7 @@
 // Includes
 #include "headers.h"
 #include "utils.h"
+#include <time.h>
 
 // Constants
 
@@ -15,5 +16,7 @@ void readKernelVersion(void);
 int readUptime(char *val, int numProc);
 void readStat(int numProc);
 void readDiskStats();
+void getContextSwitches();
+void getBootTime();
 
 #endif

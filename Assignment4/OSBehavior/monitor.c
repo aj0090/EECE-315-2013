@@ -35,6 +35,10 @@ int main(int argc, char *argv[])
         readStat(numProc);
         printf("\n");
         readDiskStats();
+        printf("\n");
+        getContextSwitches();
+        printf("\n");
+        getBootTime();
     }
 
     // v3:
@@ -98,6 +102,7 @@ void readStat(int numProc)
         token = strtok(NULL, " ");
         i++;
     }
+    fclose(fp);
 
     reprTime(userTime, dest);
     reprTime(userTime / numProc, dest2);
@@ -153,9 +158,87 @@ void readDiskStats()
         if (is_sdaLine)
             break;
     }
+    fclose(fp);
 
     printf("Disk read/write requests made on the system: %d/%d\n",
            completedReads + mergedReads, completedWrites + mergedWrites);
+}
+
+
+// Prints "The number of context switches the kernel has performed"
+// Param: none
+// Return: none
+void getContextSwitches()
+{
+    bool isLine = false;
+    char line[500];
+    char *token;
+    int contextSwitches, i;
+
+    FILE *fp;
+    fp = fopen("/proc/stat", "r");
+    if (!fp) exit(0);
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, " ");
+        i = 0;
+        while (token != NULL)
+        {
+            if (!strcmp(token, "ctxt"))
+                isLine = true;
+            if (isLine && i == 1)
+            {
+                contextSwitches = atoi(token);
+            }
+            token = strtok(NULL, " ");
+            i++;
+        }
+        if (isLine)
+            break;
+    }
+    fclose(fp);
+
+    printf("Context switches performed by kernel: %d\n", contextSwitches);
+}
+
+
+// Prints "The time at which the system was last booted"
+// Param: none
+// Return: none
+void getBootTime()
+{
+    bool isLine = false;
+    char line[500];
+    char *token;
+    int i;
+    time_t bootTime;
+
+    FILE *fp;
+    fp = fopen("/proc/stat", "r");
+    if (!fp) exit(0);
+
+    while (fgets(line, sizeof(line), fp) != NULL)
+    {
+        token = strtok(line, " ");
+        i = 0;
+        while (token != NULL)
+        {
+            if (!strcmp(token, "btime"))
+                isLine = true;
+            if (isLine && i == 1)
+            {
+                bootTime = atoi(token);
+            }
+            token = strtok(NULL, " ");
+            i++;
+        }
+        if (isLine)
+            break;
+    }
+    fclose(fp);
+
+    printf("System was last booted at: %s\n", ctime(&bootTime));
 }
 
 
