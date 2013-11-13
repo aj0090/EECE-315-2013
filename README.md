@@ -5,17 +5,46 @@ A repository for code used for EECE 315 101 2013.
 
 [![Build Status](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo.png?token=ZpicHWVRcsKnmG8qc6PB&branch=master)](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo)
 
-# Links
+## Links
 
 [Trello](https://trello.com/b/B5YVE1uU/eece-315-group-12)
+
 [Google Docs](https://drive.google.com/folderview?id=0B5oHB38MvjcMOWV6MUhWM3BjRUE)
 
-# Make
+## Make
 
-    make: *.c
-        gcc -g -o ProgramName fileX.c fileY.c fileZ.c
+```makefile
+make: *.c
+    gcc -g -o ProgramName fileX.c fileY.c fileZ.c
+```
 
-# Valgrind (broken on Mac OS X 10.9)
+## .h
+
+```c
+#ifndef HEADER_FILE_H
+#define HEADER_FILE_H
+
+// Includes
+#include <stdio.h>
+#include "custom.h"
+
+// Constants
+#define THIS    0
+
+// Define VERBOSE to 1 for debugging outputs
+#define VERBOSE 0
+
+// Struct definitions
+
+// Function Prototypes
+void function(void);
+
+#endif
+```
+
+## Valgrind
+
+NOTE: currently incompatible with Mac OS X 10.9.
 
 "definitely lost" means your program is leaking memory -- fix those leaks!
 
@@ -27,20 +56,21 @@ A repository for code used for EECE 315 101 2013.
 
 "suppressed" means that a leak error has been suppressed. There are some suppressions in the default suppression files. You can ignore suppressed errors.
 
-## .valgrindrc
+### .valgrindrc
 
-Create .valgrindrc with these settings to simplify your life.
+Create a .valgrindrc file with these settings to simplify your life.
 
-    --memcheck:leak-check=full
-    --track-origins=yes
-    --show-reachable=yes
+```
+--memcheck:leak-check=full
+--track-origins=yes
+--show-reachable=yes
+```
 
-# Travis CI (currently disabled)
+## Travis CI (currently disabled)
 
 Travis CI is a continuous integration service that can build and run tests on the repo.
 
-Note: it is not free, thus:
-- Builds of the program will only be run on the `stable` branch.
+- Builds of the program will only be run from the `stable` branch.
 - You can skip a build on the `stable` branch by putting `[ci skip]` in the commit message.
 
-Our builds are [here](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo).
+<!--Our builds are [here](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo).-->
