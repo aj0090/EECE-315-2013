@@ -89,8 +89,9 @@ int main(int argc, char **argv) {
 	printQueue(realTime);
 
 	//Do something with currentQueueElement0->process...
+	printf("Doing something with %d \n", *(currentQueueElement0->process));
 
-	printf("Done using process %d\n", *(currentQueueElement0->process));
+	printf("Done using process %d and now terminating it \n\n", *(currentQueueElement0->process));
 	terminateQueueElement(currentQueueElement0);
 
 	//Sample of getting process at front of queue and putting it back
@@ -101,7 +102,7 @@ int main(int argc, char **argv) {
 	//Do something with currentQueueElement0->process...
 
 	pushbackQueueElement(&realTime, currentQueueElement0);
-	printf("Not done using process %d and pusing it back", *(currentQueueElement0->process));
+	printf("Not done using process %d and pushing it back\n", *(currentQueueElement0->process));
 	printQueue(realTime);
 
 	cleanQueue(realTime);

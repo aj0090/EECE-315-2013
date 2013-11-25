@@ -4,6 +4,7 @@
 
 #include "queue.h"
 
+//EFFECTS: Returns a handle to a new queue;
 Queue* initializeQueue() {
         Queue *new;
         if((new = malloc(sizeof(Queue)))) {
@@ -17,12 +18,15 @@ Queue* initializeQueue() {
         }
 }
 
-void enqueueProcess(Queue *currentQueue, replaceMe *currentProcess) {
-        if (!currentQueue->isHead) {
-                currentQueue->process = currentProcess;
-                currentQueue->isHead = 1;
+//REQUIRES: queuePtr is a valid pointer to a Queue, currentProcess is a valid pointer to a process
+//MODIFIES: queuePtr
+//EFFECTS: currentProcess is encapsulated in a Queue data structure, and placed in tail-end of Queue
+void enqueueProcess(Queue *queuePtr, replaceMe *currentProcess) {
+        if (!queuePtr->isHead) {
+                queuePtr->process = currentProcess;
+                queuePtr->isHead = 1;
         } else {
-                Queue *iter = currentQueue;
+                Queue *iter = queuePtr;
                 while (iter->next) // traverse the list until the end
                         iter = iter->next;
                 Queue *new = malloc(sizeof(Queue));
@@ -34,65 +38,81 @@ void enqueueProcess(Queue *currentQueue, replaceMe *currentProcess) {
         return;
 }
 
-Queue* dequeueProcess(Queue **headPtr) {
-        if(!((*headPtr)->process)) {
-                printf("No more processes left\n");
+//REQUIRES: queuePtrAddress is a valid address of a Queue pointer
+//MODIFIES: *queuePtrAddress
+//EFFECTS: The head of the queue at queuePtrAddress/NULL is returned, and the queue has its first element popped
+Queue* dequeueProcess(Queue **queuePtrAddress) {
+        if(!((*queuePtrAddress)->process)) {
+                printf("No more processes left returning NULL\n");
                 return NULL;
         }
                 
-        Queue *tmp = *headPtr;
-        *headPtr = (*headPtr)->next;
+        Queue *tmp = *queuePtrAddress;
+        *queuePtrAddress = (*queuePtrAddress)->next;
 
-        if (*headPtr)
-                (*headPtr)->isHead = 1;
+        if (*queuePtrAddress)
+                (*queuePtrAddress)->isHead = 1;
 
         tmp->next = NULL;
 
         return tmp;
 }
 
-void pushbackQueueElement(Queue **currentQueuePtr, Queue *newHead) {
-        if (!(*currentQueuePtr)) {
-                *currentQueuePtr = newHead;
-                (*currentQueuePtr)->isHead = 1;
+//REQUIRES: queuePtrAddress is a valid address of a Queue pointer, newHead is a valid pointer to a Queue type of 1 element
+//MODIFIES: *queuePtrAddress
+//EFFECTS: The head of the queue at queuePtrAddress becomes newHead
+void pushbackQueueElement(Queue **queuePtrAddress, Queue *newHead) {
+        if (!(*queuePtrAddress)) {
+                *queuePtrAddress = newHead;
+                (*queuePtrAddress)->isHead = 1;
         }
-        else if ((*currentQueuePtr)->isHead) {
-                (*currentQueuePtr)->isHead = 0;
-                Queue *tmp = *currentQueuePtr;
-                *currentQueuePtr = newHead;
-                (*currentQueuePtr)->isHead = 1;
-                (*currentQueuePtr)->next = tmp;
+        else if ((*queuePtrAddress)->isHead) {
+                (*queuePtrAddress)->isHead = 0;
+                Queue *tmp = *queuePtrAddress;
+                *queuePtrAddress = newHead;
+                (*queuePtrAddress)->isHead = 1;
+                (*queuePtrAddress)->next = tmp;
         } else {
                 fprintf(stderr, "Attemping to push element to a position not at the front of a queue\n");
         }
         return;
 }
 
+//REQUIRES: queueElement is a valid poitner to a queue of 1 element, and does not need to be used again
+//MODIFIES: queueElement
+//EFFECTS: The memory used by queueElement and its process is freed;
 void terminateQueueElement(Queue *queueElement) {
         free(queueElement->process);
         free(queueElement);
 }
 
-void cleanQueue(Queue *queue) {
+//REQUIRES: queuePtr is a valid poitner to a queue
+//MODIFIES: queuPtr
+//EFFECTS: The memory used by queuePtr and its held processes are freed;
+void cleanQueue(Queue *queuePtr) {
 
-        while (queue) {
-                Queue *tmp = queue->next;
-                free(queue->process);
-                free(queue);
-                queue = tmp;
+        while (queuePtr) {
+                Queue *tmp = queuePtr->next;
+                free(queuePtr->process);
+                free(queuePtr);
+                queuePtr = tmp;
         }
 }
 
-void printQueue(Queue *currentQueue) {
-        if (!(currentQueue)) {
+
+//NOTE*** Used for debugging purposes if process is of type *int, comment out if using other process type
+//REQUIRES: queuePtr is a valid poitner to a queue
+//EFFECTS: Returns information about the queue;
+void printQueue(Queue *queuePtr) {
+        if (!(queuePtr)) {
                 printf("The queue is empty!\n\n");
                 return;
         }
 
-        printf("The queue is: %d", *(currentQueue->process));
-        while (currentQueue->next) {
-                printf(", %d", *(currentQueue->next->process));
-                currentQueue = currentQueue->next;
+        printf("The queue is: %d", *(queuePtr->process));
+        while (queuePtr->next) {
+                printf(", %d", *(queuePtr->next->process));
+                queuePtr = queuePtr->next;
         }
         printf("\n\n");
 }
