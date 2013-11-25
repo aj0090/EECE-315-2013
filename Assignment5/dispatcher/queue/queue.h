@@ -5,13 +5,16 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
 //Remove line when implementing actual data structure in queue
 typedef int replaceMe;
 
 typedef struct queue {
-        int isHead;
-        struct queue * next;
-        replaceMe *process;                
+    int isHead;
+    struct queue * next;
+    replaceMe *process;
 } Queue;
 
 Queue* initializeQueue();

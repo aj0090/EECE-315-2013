@@ -46,7 +46,7 @@ Queue* dequeueProcess(Queue **queuePtrAddress) {
                 printf("No more processes left returning NULL\n");
                 return NULL;
         }
-                
+
         Queue *tmp = *queuePtrAddress;
         *queuePtrAddress = (*queuePtrAddress)->next;
 
