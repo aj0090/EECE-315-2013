@@ -1,18 +1,14 @@
-#ifndef JOBS_H
-#define JOBS_H
+#ifndef PROCESSES_H
+#define PROCESSES_H
 
 // Includes
-#include <stdio.h>
+//#include <stdio.h>
 
 // Constants
-#define THIS    0
 #define MAX_PRINTERS 2
 #define MAX_SCANNERS 1
 #define MAX_MODEMS 1
 #define MAX_DISKS 2
-
-// Define VERBOSE to 1 for debugging outputs
-#define VERBOSE 0
 
 // Struct definitions
 typedef struct pcb {
@@ -23,22 +19,22 @@ typedef struct pcb {
     int remainingTime;
     struct pcbStatus *status;
     struct pcbResources *io;
-};
+} PCB;
 
 typedef struct pcbStatus {
     int started;
     int running;
     int suspended;
     int terminated;
-}
+} PBCStatus;
 
 //TODO: should this define the process's resources or the system's resources?
-typedef struct pcbResources {
+typedef struct systemResources {
     int printer;
     int scanner;
     int modem;
     int disk;
-};
+} SYSResources;
 
 // Function Prototypes
 void function(void);
