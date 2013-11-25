@@ -5,6 +5,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+//Remove line when implementing actual data structure in queue
 typedef int replaceMe;
 
 typedef struct queue {
