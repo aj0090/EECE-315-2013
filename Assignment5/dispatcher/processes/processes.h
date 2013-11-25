@@ -18,7 +18,7 @@ typedef struct pcb {
     int arrivalTime;
     int remainingTime;
     struct pcbStatus *status;
-    struct pcbResources *io;
+    struct resources *io;
 } PCB;
 
 typedef struct pcbStatus {
@@ -26,17 +26,20 @@ typedef struct pcbStatus {
     int running;
     int suspended;
     int terminated;
-} PBCStatus;
+} PCBStatus;
 
-//TODO: should this define the process's resources or the system's resources?
-typedef struct systemResources {
+//TODO: this define the process's resources, but also stands for the system's resources as a global var?
+typedef struct resources {
     int printer;
     int scanner;
     int modem;
     int disk;
-} SYSResources;
+} PCBIO;
 
-// Function Prototypes
+// Global variables
+struct resources SYSIO;
+
+// Function prototypes
 void function(void);
 
 #endif

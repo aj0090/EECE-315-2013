@@ -21,7 +21,7 @@
 int cpuTime;
 Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
 
-// Function Prototypes
+// Function prototypes
 void readFile(char *filename, Queue *dispatcher);
 
 #endif

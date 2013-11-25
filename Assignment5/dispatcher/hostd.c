@@ -1,4 +1,9 @@
 #include "hostd.h"
+#include <string.h>
+
+void initSystem(void);
+void closeSystem(void);
+PCB newPCB(void);
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -8,20 +13,16 @@ int main(int argc, char **argv) {
         exit(0);
     }
 
-    /*initialize the system*/
-    /*set time to 0*/
-    /*set resource counters*/
-    /*set memory limit*/
-    /*init all queues*/
-    cpuTime = 0;
-    dispatcher = initializeQueue();
-    printf("Initialized!\n");
+    initSystem();
 
     char *filename = argv[1];
     readFile(filename, dispatcher);
+    printf("done...\n");
 
     // DEBUG
-    printQueue(dispatcher);
+    /*printQueue(dispatcher);*/
+
+    closeSystem();
 
     return 0;
 }
@@ -41,20 +42,83 @@ void readFile(char *filename, Queue *dispatcher) {
         printf("The file %s was found.\n", filename);
     }
 
-    char fileBuffer[FILE_BUFFER];
-    fscanf(fp, "%[^\n]", fileBuffer);
+    char *fileBuffer = malloc(FILE_BUFFER);
 
-    /*scan for process*/
-    /*init process*/
-    /*add process info*/
-    /*put process in dispatch queue*/
-    /*scan for process*/
+    while (fgets(fileBuffer, FILE_BUFFER, fp) != NULL) {
+        fileBuffer = strtok(fileBuffer, "\n");
+        printf("fileBuffer: %s\n", fileBuffer);
 
-    //DEBUG
-    replaceMe *process = malloc((sizeof(replaceMe)));
-    *process = 8;
-    enqueueProcess(dispatcher, process);
+        // Init a new process
+        PCB process = newPCB();
 
-    printf("fileBuffer: %s\n", fileBuffer);
+        /*scan for process*/
+        //add process info fill pcb with reqs
+        printf("%d\n", process.io->printer);
+
+        /*put process in dispatch queue*/
+        //DEBUG
+        /*replaceMe *process = malloc(sizeof(replaceMe));*/
+        /**process = 8;*/
+        /*enqueueProcess(dispatcher, process);*/
+        /*free(process);*/
+    }
+    free (fileBuffer);
+    fclose(fp);
 }
 
+// Initializes a new PCB for a process
+// @par: none
+// @ret: PCB    process pcb
+PCB newPCB(void) {
+    // Init a new PCB's status
+    PCBStatus newPCBStatus;
+    newPCBStatus.started = 1;
+    newPCBStatus.running = 0;
+    newPCBStatus.suspended = 0;
+    newPCBStatus.terminated = 0;
+
+    // Init a new PCB's io
+    PCBIO newPCBIO;
+    newPCBIO.printer = 0;
+    newPCBIO.scanner = 0;
+    newPCBIO.modem = 0;
+    newPCBIO.disk = 0;
+
+    // Init a new PCB
+    PCB newPCB;
+    newPCB.pid = -1;
+    newPCB.priority = 0;
+    newPCB.memory = 0;
+    newPCB.arrivalTime = 0;
+    newPCB.remainingTime = 0;
+    newPCB.status = &newPCBStatus;
+    newPCB.io = &newPCBIO;
+
+    return newPCB;
+}
+
+// Initializes the system (global variables)
+// @par: none
+// @ret: none
+void initSystem(void) {
+    /*set resource counters*/
+    /*set memory limit*/
+
+    // Init all queues
+    /*dispatcher = initializeQueue();*/
+    dispatcher = realTimeQueue = userJobQueue = p1Queue = p2Queue = p3Queue = initializeQueue();
+
+    // Set CPU start time to 0
+    cpuTime = 0;
+}
+
+// Shuts down the system (global variables) by freeing memory
+// @par: none
+// @ret: none
+void closeSystem(void) {
+    /*reset resource counters?*/
+    /*reset memory limit?*/
+
+    // Empty all queues
+    cleanQueue(dispatcher);
+}
