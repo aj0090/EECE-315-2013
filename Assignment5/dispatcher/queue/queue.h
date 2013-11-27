@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../processes/processes.h"
 
 //Remove line when implementing actual data structure in queue
 typedef int replaceMe;
@@ -14,12 +15,12 @@ typedef int replaceMe;
 typedef struct queue {
     int isHead;
     struct queue * next;
-    replaceMe *process;
+    PCB *process;
 } Queue;
 
 Queue* initializeQueue();
 
-void enqueueProcess(Queue *currentQueue, replaceMe *currentProcess);
+void enqueueProcess(Queue *currentQueue, PCB *currentProcess);
 
 Queue* dequeueProcess(Queue **headPtr);
 

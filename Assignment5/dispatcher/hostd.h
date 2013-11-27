@@ -23,5 +23,8 @@ Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
 
 // Function prototypes
 void readFile(char *filename, Queue *dispatcher);
+void printPCBInfo(PCB *process);
+int *stringToInts(char *string);
+
 
 #endif

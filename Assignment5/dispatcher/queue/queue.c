@@ -21,7 +21,7 @@ Queue* initializeQueue() {
 //REQUIRES: queuePtr is a valid pointer to a Queue, currentProcess is a valid pointer to a process
 //MODIFIES: queuePtr
 //EFFECTS: currentProcess is encapsulated in a Queue data structure, and placed in tail-end of Queue
-void enqueueProcess(Queue *queuePtr, replaceMe *currentProcess) {
+void enqueueProcess(Queue *queuePtr, PCB *currentProcess) {
         if (!queuePtr->isHead) {
                 queuePtr->process = currentProcess;
                 queuePtr->isHead = 1;
@@ -109,9 +109,9 @@ void printQueue(Queue *queuePtr) {
                 return;
         }
 
-        printf("The queue is: %d", *(queuePtr->process));
+        printf("The queue is: %d", queuePtr->process->pid);
         while (queuePtr->next) {
-                printf(", %d", *(queuePtr->next->process));
+                printf(", %d", queuePtr->next->process->pid);
                 queuePtr = queuePtr->next;
         }
         printf("\n\n");
