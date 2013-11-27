@@ -28,6 +28,8 @@ void pushbackQueueElement(Queue **currentQueuePtr, Queue *newHead);
 
 void terminateQueueElement(Queue *queueElement);
 
+int numElems(Queue *queuePtr);
+
 void printQueue(Queue *currentQueue);
 
 void cleanQueue(Queue *queue);

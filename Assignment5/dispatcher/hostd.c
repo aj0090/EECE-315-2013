@@ -40,6 +40,18 @@ int main(int argc, char **argv) {
 	{
 		printf("%d ", host.memSpace[i]);
 	}
+	printf("\n");
+
+    printf("REAL TIME QUEUE: ");
+    printQueue(realTimeQueue);
+    printf("PRIORITY 1 QUEUE: ");
+    printQueue(p1Queue);
+
+    printf("PRIORITY 2 QUEUE: ");
+    printQueue(p2Queue);
+
+    printf("PRIORITY 3 QUEUE: ");
+    printQueue(p3Queue);
 
     closeSystem();
 
@@ -53,6 +65,8 @@ int main(int argc, char **argv) {
 int updateDispatcher(int time)
 {
     Queue *queuePtr = dispatcher;
+
+    Queue *newDispatcher = initializeQueue();
     int rtQUpdated = 0;
 
     if (!(queuePtr)) {
@@ -61,25 +75,93 @@ int updateDispatcher(int time)
     }
 
     // Iterate through each element in the queue
-    while (queuePtr) {
-	if(time >= queuePtr->process->arrivalTime){
-		printf("HELLO from PID: %d!\n", queuePtr->process->pid);
+
+    int i = 0;
+    int count = numElems(queuePtr);
+
+    if(queuePtr->process == NULL)
+	i = count;
+    int broken = 0;
+    printf("Num elems: %d\n", count);
+    while (i < count) {
+
+	
+	printf("%d/%d\n", i + 1, count);
+	//dequeueProcess(&queuePtr);
+		
+	PCB *currentProcess = dequeueProcess(&queuePtr)->process;
+
+        // Queue is empty.
+	if(currentProcess == NULL){
+		printf("BROKEN!\n");
+		broken = 1;
+		break;
+	}
+
+	if(time >= currentProcess->arrivalTime){
+		printf("HELLO from PID: %d!\n", currentProcess->pid);
 		// If a realtime process was added, set the return variable to true
-		if(addToQueues(queuePtr->process) == 2)
+		int allocResult = allocateResources(currentProcess); 
+		if(allocResult)
 		{
-			printf("REAL TIME PROCESS!\n");
-			rtQUpdated = 1;
+			// Send the process to join the appropriate priority queue
+			printf("Successful add!\n");
+			enqueueToPriority(currentProcess);
+			rtQUpdated = allocResult == 2;
+		}
+		else
+		{
+			// Throw the process back on the dispatcher queue
+			printf("Not enough resources!\n");
+			enqueueProcess(newDispatcher, currentProcess);
 		}
 	}
-        queuePtr = queuePtr->next;
+	else{
+		enqueueProcess(newDispatcher, currentProcess);
+	}
+	printf("heere?\n");
+	i++;
     }
+
+    if(!broken){
+	    if(dispatcher == NULL){
+	    	//cleanQueue(dispatcher);
+	    }
+	    dispatcher = newDispatcher;
+    }
+    printf("here?\n");
     return rtQUpdated;
 }
+
+
+void enqueueToPriority(PCB *process)
+{
+	int p = process->priority;
+	if(p == 0)
+	{
+		enqueueProcess(realTimeQueue, process);
+	}
+	else if(p == 1)
+	{
+		enqueueProcess(p1Queue, process);
+	}
+	else if(p == 2)
+	{
+		enqueueProcess(p2Queue, process);
+	}
+	else if(p == 3)
+	{
+		enqueueProcess(p3Queue, process);
+	}
+
+	return;
+}
+
 
 // Returns 2 if hostd contains enough resources and process is realtime
 // Returns 1 if hostd contains enough resources
 // Returns 0 if not
-int addToQueues(PCB *process)
+int allocateResources(PCB *process)
 {
     int a, b, c, d, e;
     
@@ -100,7 +182,7 @@ int addToQueues(PCB *process)
 
 
     if(a&&b&&c&&d&&e){
-	//freeHostResources(process);
+	
 	return realTime ? 2 : 1;
     }
     else{
@@ -227,7 +309,9 @@ int allocateScanners(PCB *process)
 	int i;
 
 
-	// Adequate resources are available starting at startCursor
+	// Adequate resources are available starting at startCurso
+
+
 	if(startCursor != -1)
 	{
 		// Allocate the scannerss with the process PID
@@ -325,10 +409,12 @@ int allocateRealTimeMemory(PCB *process)
 	int i;
 
 
-	printf("startcursor: %d, %d/%d\n", startCursor, process->IO->memSpaceNeeded, host.rtMemSpaceMax);
+	//printf("startcursor: %d, %d/%d\n", startCursor, process->IO->memSpaceNeeded, host.rtMemSpaceMax);
 	// Adequate resources are available starting at startCursor
 	if(startCursor != -1)
 	{
+		printf("PID: %d\n", process->pid);
+		//memset(host.memSpace + startCursor, process->pid, process->IO->memSpaceNeeded);
 		// Allocate the scannerss with the process PID
 		for(i = startCursor; i < startCursor + process->IO-> memSpaceNeeded; i++){
 			host.memSpace[i] = process->pid;

@@ -47,13 +47,22 @@ Queue* dequeueProcess(Queue **queuePtrAddress) {
                 return NULL;
         }
 
+
+
         Queue *tmp = *queuePtrAddress;
-        *queuePtrAddress = (*queuePtrAddress)->next;
+	if((*queuePtrAddress)->next == NULL){
+		*queuePtrAddress = NULL;			
+		printf("SHIT\n");
+		//return NULL;	
+	}
+	else {
+        	(*queuePtrAddress) = (*queuePtrAddress)->next;
+	}
 
-        if (*queuePtrAddress)
-                (*queuePtrAddress)->isHead = 1;
+       // if (*queuePtrAddress)
+         //       (*queuePtrAddress)->isHead = 1;
 
-        tmp->next = NULL;
+        //tmp->next = NULL;
 
         return tmp;
 }
@@ -99,17 +108,30 @@ void cleanQueue(Queue *queuePtr) {
         }
 }
 
+int numElems(Queue *queuePtr) {
+        if (!(queuePtr)) {
+                printf("The queue is empty!\n\n");
+                return 0;
+        }
+
+	int count = 1;
+        while (queuePtr->next) {
+                count++;
+                queuePtr = queuePtr->next;
+        }
+        return count;
+}
 
 //NOTE*** Used for debugging purposes if process is of type *int, comment out if using other process type
 //REQUIRES: queuePtr is a valid poitner to a queue
 //EFFECTS: Returns information about the queue;
 void printQueue(Queue *queuePtr) {
-        if (!(queuePtr)) {
+        if (!(queuePtr) || queuePtr->process == NULL) {
                 printf("The queue is empty!\n\n");
                 return;
         }
 
-        printf("The queue is: %d", queuePtr->process->pid);
+        printf("Order of PID's: %d", queuePtr->process->pid);
         while (queuePtr->next) {
                 printf(", %d", queuePtr->next->process->pid);
                 queuePtr = queuePtr->next;
