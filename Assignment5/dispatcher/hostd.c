@@ -69,17 +69,26 @@ int main(int argc, char **argv) {
 void doProcessing(int time, int rtUpdated)
 {
 	// Switching processes goes here
-
+/*
 	printf("HELLO!\n");
 
-	if(host.currentProcess == NULL && time >= 13){
+	if(host.currentProcess == NULL && time >= 12){
 		printf("current process is null.\n");
-		host.currentProcess = dequeueProcess(&realTimeQueue);
+		host.currentProcess = p1Queue->process;
+		dequeueProcess(&p1Queue);
 	}
-
-	//freeHostResources(host.currentProcess);
-/*
+	if(host.currentProcess != NULL){
+		printf("host printers: %d\n", host.numPrinters);
+		printf("current printer: %d\n", host.currentProcess->IO->printerStartID);
+		freeHostResources(host.currentProcess);
+	}
+*/
 	// REPLACEMENT CHECK
+
+	printf("IN PROCESSOR\n");
+		
+
+	printf("rtUpdated: %d\n", rtUpdated);
 	if(host.currentProcess != NULL){
 		
 		// Current process priority is not zero, therefore not realtime
@@ -95,7 +104,9 @@ void doProcessing(int time, int rtUpdated)
 				// Enqueue the realtime process
 				if(realTimeQueue->process != NULL)
 				{
-					host.currentProcess = dequeueProcess(&realTimeQueue);
+					host.currentProcess = realTimeQueue->process;
+					host.currentProcess->timeSpliceLeft = host.currentProcess->remainingTime;
+					dequeueProcess(&realTimeQueue);
 				}
 			}
 			
@@ -104,21 +115,45 @@ void doProcessing(int time, int rtUpdated)
 	}
 	// Processor does not have a process currently
 	else{
-	
-		if(p1Queue->process != NULL)
-		{
-			host.currentProcess = dequeueProcess(&p1Queue);
-			host.currentProcess->timeSpliceLeft = P1_TIMEQUANTUM;
+		printf("NO PROCESS, LETS FIND ONE\n");
+		if(rtUpdated){
+			// Enqueue the realtime process
+			if(realTimeQueue){
+				if(realTimeQueue->process != NULL)
+				{
+					host.currentProcess = realTimeQueue->process;
+					host.currentProcess->timeSpliceLeft = host.currentProcess->remainingTime;
+					dequeueProcess(&realTimeQueue);
+		
+				}
+			}
 		}
-		else if(p2Queue->process != NULL)
-		{
-			host.currentProcess = dequeueProcess(&p2Queue);
-			host.currentProcess->timeSpliceLeft = P2_TIMEQUANTUM;
+		else if (p1Queue) {
+			if(p1Queue->process != NULL)
+			{
+				host.currentProcess = p1Queue->process;
+				dequeueProcess(&p1Queue);
+				host.currentProcess->timeSpliceLeft = P1_TIMEQUANTUM;
+			}
 		}
-		else if(p3Queue->process != NULL)
-		{
-			host.currentProcess = dequeueProcess(&p3Queue);
-			host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;
+		else if(p2Queue) { 
+			if(p2Queue->process != NULL)
+			{
+				host.currentProcess = p2Queue->process;
+				dequeueProcess(&p2Queue);
+				host.currentProcess->timeSpliceLeft = P2_TIMEQUANTUM;
+			}
+		}
+		else if(p3Queue) {
+			if(p3Queue->process != NULL)
+			{
+				host.currentProcess = p3Queue->process;
+				dequeueProcess(&p3Queue);
+				host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;
+			}
+		}
+		else{
+			return;		
 		}
 	
 	}
@@ -128,7 +163,9 @@ void doProcessing(int time, int rtUpdated)
 	if(host.currentProcess != NULL){
 		host.currentProcess->state = RUNNING;
 		host.currentProcess->timeSpliceLeft--;
-		printf("Time splice left: %d\n", host.currentProcess->timeSpliceLeft);
+		host.currentProcess->remainingTime--;
+		printf("PID: %d\n", host.currentProcess->pid);
+		printf("Time splice left: %d, remaining time: %d\n", host.currentProcess->timeSpliceLeft, host.currentProcess->remainingTime);
 		
 		// Process has no time splice left
 		if(host.currentProcess->remainingTime == 0)
@@ -136,9 +173,9 @@ void doProcessing(int time, int rtUpdated)
 			printf("Process finished running!\n");
 			freeHostResources(host.currentProcess);
 			host.currentProcess->state = TERMINATED;
-			//free(host.currentProcess);
+			free(host.currentProcess);
 			host.currentProcess = NULL;
-		}/*
+		}
 		else if(host.currentProcess->timeSpliceLeft == 0)
 		{
 			printf("WHAT\n");
@@ -149,8 +186,15 @@ void doProcessing(int time, int rtUpdated)
 				enqueueToPriority(host.currentProcess);
 				host.currentProcess = NULL;
 			}
+			else if(host.currentProcess->priority >= 3)
+			{	
+				host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;	
+				host.currentProcess->priority = 1;
+				enqueueToPriority(host.currentProcess);
+				host.currentProcess = NULL;
+			}
 		}
-	}*/
+	}
 
 
 	// Process termination/transcending of queues goes here
@@ -218,7 +262,9 @@ int updateDispatcher(int time)
 			// Send the process to join the appropriate priority queue
 			printf("Successful add!\n");
 			enqueueToPriority(currentProcess);
-			rtQUpdated = (allocResult == 2);
+			if(currentProcess->priority == 0)
+				rtQUpdated = 1;
+			printf("RT: %d\n", rtQUpdated);
 		}
  		// Resources could not be allocated for it.
 		else
@@ -251,18 +297,26 @@ void enqueueToPriority(PCB *process)
 	int p = process->priority;
 	if(p == 0)
 	{
+		if(!realTimeQueue)
+			realTimeQueue = initializeQueue();
 		enqueueProcess(realTimeQueue, process);
 	}
 	else if(p == 1)
 	{
+		if(!p1Queue)
+			p1Queue = initializeQueue();
 		enqueueProcess(p1Queue, process);
 	}
 	else if(p == 2)
 	{
+		if(!p2Queue)
+			p2Queue = initializeQueue();
 		enqueueProcess(p2Queue, process);
 	}
 	else
 	{
+		if(!p3Queue)
+			p3Queue = initializeQueue();
 		enqueueProcess(p3Queue, process);
 	}
 
@@ -313,27 +367,41 @@ void freeHostResources(PCB *process)
 	int i = 0;
 	printf("Freeing processes resources!\n");
 
+	printf("host printers: %d\n", host.numPrinters);
 
 	printf("Printers: %d/%d", process->IO->printerStartID, host.numPrinters);
 	
-	for(i = process->IO->printerStartID; i < process->IO->printerStartID + process->IO->printersHave; i++){
-		host.printersAlloc[i] = 0;
+	if(process->IO->printerStartID != -1){
+		for(i = process->IO->printerStartID; i < process->IO->printerStartID + process->IO->printersHave ; i++){
+			host.printersAlloc[i] = 0;
+		}
+		printf("Printer freed!\n");
 	}
-	printf("Printer freed!\n");
-	for(i = process->IO->scannerStartID; i < (process->IO->scannerStartID + process->IO->scannersHave); i++){
-		host.scannersAlloc[i] = 0;
+	if(process->IO->scannerStartID != -1){
+		for(i = process->IO->scannerStartID; i < (process->IO->scannerStartID + process->IO->scannersHave); i++){
+			host.scannersAlloc[i] = 0;
+		}
+		printf("Scanner freed!\n");
 	}
-	printf("Scanner freed!\n");
-	for(i = process->IO->modemStartID; i < (process->IO->modemStartID + process->IO->modemsHave); i++){
-		host.modemsAlloc[i] = 0;
+
+	if(process->IO->modemStartID != -1){
+		for(i = process->IO->modemStartID; i < (process->IO->modemStartID + process->IO->modemsHave); i++){
+			host.modemsAlloc[i] = 0;
+		}
+		printf("modem freed!\n");
 	}
-	printf("modem freed!\n");
-	for(i = process->IO->diskStartID; i < (process->IO->diskStartID + process->IO->disksHave); i++){
-		host.disksAlloc[i] = 0;
+
+	if(process->IO->diskStartID != -1){
+		for(i = process->IO->diskStartID; i < (process->IO->diskStartID + process->IO->disksHave); i++){
+			host.disksAlloc[i] = 0;
+		}
+		printf("CD drive freed!\n");
 	}
-	printf("CD drive freed!\n");
-	for(i = process->IO->memSpaceStartID; i < (process->IO->memSpaceStartID + process->IO->memSpaceHave); i++){
-		host.memSpace[i] = 0;
+
+	if(process->IO->memSpaceStartID != -1){
+		for(i = process->IO->memSpaceStartID; i < (process->IO->memSpaceStartID + process->IO->memSpaceHave); i++){
+			host.memSpace[i] = 0;
+		} 
 	}
 
 
