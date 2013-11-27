@@ -10,6 +10,7 @@
 #define MAX_MODEMS 1
 #define MAX_DISKS 2
 #define MAX_MEMSPACE 1024
+#define MAX_RTMEMSPACE 96
 
 // Defining states
 #define STARTED 0
@@ -32,7 +33,9 @@ typedef struct host {
     int disksAlloc[MAX_DISKS];
 
     int memSpaceMax;
-    int memSpace[1024];
+    int memSpace[MAX_MEMSPACE];
+    int rtMemSpaceMax;
+    int rtMemSpaceUsed;
 
 } HOSTResources;
 
@@ -51,30 +54,36 @@ typedef struct pcb {
     struct PCBIO *IO;
 } PCB;
 
+/*
 typedef struct pcbStatus {
     int started;
     int running;
     int suspended;
     int terminated;
 } PCBStatus;
-
+*/
 
 //TODO: this define the process's resources, but also stands for the system's resources as a global var?
 typedef struct PCBIO {
     int printersNeeded;
     int printersHave;
+    int printerStartID;
 
     int scannersNeeded; 
     int scannersHave;
+    int scannerStartID;
 
     int modemsNeeded;
     int modemsHave;
+    int modemStartID;
 
     int disksNeeded;
     int disksHave;
+    int diskStartID;
 
     int memSpaceNeeded;
     int memSpaceHave;
+    int memSpaceStartID;
 } PCBIO;
 
 // Function prototypes

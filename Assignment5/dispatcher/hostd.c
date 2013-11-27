@@ -21,11 +21,11 @@ int main(int argc, char **argv) {
     printf("done...\n");
 
 
-
    int time = 0;
 
-   while(time < 100){
+   while(time < 25){
 	printf("Time: %d\n", time);
+	updateDispatcher(time);
 	time++;
    }
 
@@ -34,10 +34,349 @@ int main(int argc, char **argv) {
     // DEBUG
     /*printQueue(dispatcher);*/
 
+	printf("Current Memory map: \n");
+	int i;
+	for(i = 0; i < host.memSpaceMax; i++)
+	{
+		printf("%d ", host.memSpace[i]);
+	}
+
     closeSystem();
 
     return 0;
 }
+
+
+
+// Returns 1 if theres a new process placed in the Realtime Queue,
+// else returns 0
+int updateDispatcher(int time)
+{
+    Queue *queuePtr = dispatcher;
+    int rtQUpdated = 0;
+
+    if (!(queuePtr)) {
+        printf("The queue is empty!\n\n");
+        return 0;
+    }
+
+    // Iterate through each element in the queue
+    while (queuePtr) {
+	if(time >= queuePtr->process->arrivalTime){
+		printf("HELLO from PID: %d!\n", queuePtr->process->pid);
+		// If a realtime process was added, set the return variable to true
+		if(addToQueues(queuePtr->process) == 2)
+		{
+			printf("REAL TIME PROCESS!\n");
+			rtQUpdated = 1;
+		}
+	}
+        queuePtr = queuePtr->next;
+    }
+    return rtQUpdated;
+}
+
+// Returns 2 if hostd contains enough resources and process is realtime
+// Returns 1 if hostd contains enough resources
+// Returns 0 if not
+int addToQueues(PCB *process)
+{
+    int a, b, c, d, e;
+    
+    //printf("Printer Allocated: %d\n", allocatePrinters(process));
+    a = allocatePrinters(process);
+    b = allocateScanners(process);
+    c = allocateModems(process);
+    d = allocateDisks(process);
+
+    int realTime = (process->priority == 0);
+
+    if(realTime){
+	e = allocateRealTimeMemory(process);
+    }
+    else{
+	e = allocateMemory(process);
+    }
+
+
+    if(a&&b&&c&&d&&e){
+	//freeHostResources(process);
+	return realTime ? 2 : 1;
+    }
+    else{
+	freeHostResources(process);
+	return 0;
+    }
+
+}
+
+
+// REQUIRES: none
+// MODIFIES: process
+// EFFECTS: Frees the processes resources from the host.
+void freeHostResources(PCB *process)
+{
+	int i = 0;
+	printf("Freeing processes resources!\n");
+	for(i = 0; i < process->IO->printersHave; i++){
+		host.printersAlloc[i + process->IO->printerStartID] = 0;
+	}
+	for(i = 0; i < process->IO->scannersHave; i++){
+		host.scannersAlloc[i + process->IO->scannerStartID] = 0;
+	}
+	for(i = 0; i < process->IO->modemsHave; i++){
+		host.modemsAlloc[i + process->IO->modemStartID] = 0;
+	}
+	for(i = 0; i < process->IO->disksHave; i++){
+		host.disksAlloc[i + process->IO->diskStartID] = 0;
+	}
+	for(i = 0; i < process->IO->memSpaceHave; i++){
+		host.memSpace[i + process->IO->memSpaceStartID] = 0;
+	}
+
+
+}
+
+
+// Returns an index where Resources can be allocated
+// Returns -1 if no printers are available
+int checkResourcesFreeFirstFit(int numResourcesReq, int pid, int numHostResources, int *hostResources)
+{
+	int i;
+	int cursor = -1, count = 0;
+	for(i = 0; i < numHostResources; i++)
+	{	
+		// 0 signifies no process is using it
+		if(hostResources[i] == 0)
+		{
+			// If the last element wasn't free, set the printerCursor 
+			// to the current element
+			if(cursor == -1)
+			{
+				cursor = i;
+			}
+			
+			count++;
+			// Check if the desired resource count was met
+			if(count == numResourcesReq){
+				break;
+			}
+		}
+		// This shouldn't happen in the current version, but 
+		else if(hostResources[i] == pid){
+			return -1;
+		}
+		// Allocated memory block found. Set the current count to zero and make the
+		// printerCursor = -1.
+		else{
+			cursor = -1;
+			count = 0;
+		}
+	}
+	// Enough resources were found
+	if(count == numResourcesReq)
+		return cursor;
+	// Not enough resources were found
+	else{
+		return -1;
+	}
+}
+
+
+
+// Returns 1 if printers were allocated correctly
+// Returns 0 otherwise
+int allocatePrinters(PCB *process)
+{
+	// No printers are needed, therefore return true
+	if(process->IO->printersNeeded == 0)
+		return 1;
+
+
+	int startCursor = checkResourcesFreeFirstFit(process->IO->printersNeeded, process->pid, host.numPrinters, host.printersAlloc);
+	int i;
+
+
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the printers with the process PID
+		for(i = startCursor; i < startCursor + process->IO->printersNeeded; i++){
+			host.printersAlloc[i] = process->pid;
+		}
+		// Update the number of printers inside the process
+		process->IO->printersHave = process->IO->printersNeeded;
+		printf("Allocated %d printers starting at printer #%d!\n", process->IO->printersHave, startCursor);
+		process->IO->printerStartID = startCursor;
+		return 1;
+	}
+	
+	return -1;
+}
+
+// Returns 1 if scanners were allocated correctly
+// Returns 0 otherwise
+int allocateScanners(PCB *process)
+{
+	// No scanners are needed, therefore return true
+	if(process->IO->scannersNeeded == 0)
+		return 1;
+
+
+	int startCursor = checkResourcesFreeFirstFit(process->IO->scannersNeeded, process->pid, host.numScanners, host.scannersAlloc);
+	int i;
+
+
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the scannerss with the process PID
+		for(i = startCursor; i < startCursor + process->IO->scannersNeeded; i++){
+			host.scannersAlloc[i] = process->pid;
+		}
+		// Update the number of scanners inside the process
+		process->IO->scannersHave = process->IO->scannersNeeded;
+		printf("Allocated %d scanners starting at scanner #%d!\n", process->IO->scannersHave, startCursor);
+		process->IO->scannerStartID = startCursor;
+		return 1;
+	}
+	
+	return -1;
+}
+
+
+// Returns 1 if modems were allocated correctly
+// Returns 0 otherwise
+int allocateModems(PCB *process)
+{
+	// No modems are needed, therefore return true
+	if(process->IO->modemsNeeded == 0)
+		return 1;
+
+
+	int startCursor = checkResourcesFreeFirstFit(process->IO->modemsNeeded, process->pid, host.numModems, host.modemsAlloc);
+	int i;
+
+
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the scannerss with the process PID
+		for(i = startCursor; i < startCursor + process->IO->modemsNeeded; i++){
+			host.modemsAlloc[i] = process->pid;
+		}
+		// Update the number of scanners inside the process
+		process->IO->modemsHave = process->IO->modemsNeeded;
+		printf("Allocated %d modems starting at modem #%d!\n", process->IO->modemsHave, startCursor);
+		process->IO->modemStartID = startCursor;
+		return 1;
+	}
+	
+	return -1;
+}
+
+
+// Returns 1 if diskss were allocated correctly
+// Returns 0 otherwise
+int allocateDisks(PCB *process)
+{
+	// No modems are needed, therefore return true
+	if(process->IO->disksNeeded == 0){
+		printf("No disks needed.\n");
+		return 1;
+	}
+
+
+	int startCursor = checkResourcesFreeFirstFit(process->IO->disksNeeded, process->pid, host.numDisks, host.disksAlloc);
+	int i;
+
+
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the scannerss with the process PID
+		for(i = startCursor; i < startCursor + process->IO->disksNeeded; i++){
+			host.disksAlloc[i] = process->pid;
+		}
+		// Update the number of scanners inside the process
+		process->IO->disksHave = process->IO->disksNeeded;
+		printf("Allocated %d disks starting at disk #%d!\n", process->IO->disksHave, startCursor);
+		process->IO->diskStartID = startCursor;
+		return 1;
+	}
+	
+	return -1;
+}
+
+
+int allocateRealTimeMemory(PCB *process)
+{
+	// No modems are needed, therefore return true
+	if(process->IO->memSpaceNeeded == 0){
+		printf("No memory needed.... weird\n");
+		return 1;
+	}
+
+
+	printf("hi\n");
+	// Pass the same array, but only let it see the first 96 bytes (since this is
+	// is a real time process)
+	int startCursor = checkResourcesFreeFirstFit(process->IO->memSpaceNeeded, process->pid, host.rtMemSpaceMax, host.memSpace);
+	int i;
+
+
+	printf("startcursor: %d, %d/%d\n", startCursor, process->IO->memSpaceNeeded, host.rtMemSpaceMax);
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the scannerss with the process PID
+		for(i = startCursor; i < startCursor + process->IO-> memSpaceNeeded; i++){
+			host.memSpace[i] = process->pid;
+		}
+		// Update the number of scanners inside the process
+		process->IO->memSpaceHave = process->IO->memSpaceNeeded;
+		printf("Allocated %d MByte's starting at disk #%d!\n", process->IO->memSpaceHave, startCursor);
+		process->IO->memSpaceStartID = startCursor;
+		return 1;
+	}
+	
+	return -1;
+}
+
+
+int allocateMemory(PCB *process)
+{
+	// No modems are needed, therefore return true
+	if(process->IO->memSpaceNeeded == 0){
+		printf("No memory needed.... weird\n");
+		return 1;
+	}
+
+
+	// Pass the same array, but pass the start as 96 bytes forward(ignore RT memory)
+	// Also, show that the length is 96 bytes less(rt memory)
+	int startCursor = checkResourcesFreeFirstFit(process->IO->memSpaceNeeded, process->pid, host.memSpaceMax - host.rtMemSpaceMax, host.memSpace + host.rtMemSpaceMax);
+	int i;
+
+	// Adequate resources are available starting at startCursor
+	if(startCursor != -1)
+	{
+		// Allocate the scannerss with the process PID
+		for(i = startCursor + host.rtMemSpaceMax; i < startCursor + process->IO->memSpaceNeeded + host.rtMemSpaceMax; i++){
+			host.memSpace[i] = process->pid;
+		}
+		// Update the number of scanners inside the process
+		process->IO->memSpaceHave = process->IO->memSpaceNeeded;
+		printf("Allocated %d MByte's starting at disk #%d!\n", process->IO->memSpaceHave, startCursor + host.rtMemSpaceMax);
+		process->IO->memSpaceStartID = startCursor + host.rtMemSpaceMax;
+		return 1;
+	}
+	
+	return -1;
+	
+}
+
+
 
 // Creates processes from the file given and adds them to the dispatcher queue
 // @par: pointer        filename
@@ -76,7 +415,7 @@ void readFile(char *filename, Queue *dispatcher) {
         // 6 - # modems
 	// 7 - # cds
 
-	// Static int to keep track of PID's
+	// Static int to keep track of PID's, starting at id = 1
 	static int pid = 1;    
 
 	// Allocate the pid and the args to the struct members
@@ -151,11 +490,21 @@ PCB *newPCB(void) {
 
     // Init a new PCB's io
     PCBIO *newPCBIO = malloc(sizeof(PCBIO));
+
     newPCBIO->printersHave = 0;
+    newPCBIO->printerStartID = -1;
+
     newPCBIO->scannersHave = 0;
+    newPCBIO->scannerStartID = -1;
+
     newPCBIO->modemsHave = 0;
+    newPCBIO->modemStartID = -1;
+
     newPCBIO->disksHave = 0;
+    newPCBIO->diskStartID = -1;
+
     newPCBIO->memSpaceHave = 0;
+    newPCBIO->memSpaceStartID = -1;
 
     // Init a new PCB
     PCB *newPCB = malloc(sizeof(PCB));
@@ -189,6 +538,24 @@ void freePCB(PCB *process) {
 void initSystem(void) {
     /*set resource counters*/
     /*set memory limit*/
+
+    int i;
+    host.numPrinters = MAX_PRINTERS;
+    host.numScanners = MAX_SCANNERS;
+    host.numModems = MAX_MODEMS;
+    host.numDisks = MAX_DISKS;
+    host.memSpaceMax = MAX_MEMSPACE;
+    host.rtMemSpaceMax = MAX_RTMEMSPACE;
+    host.rtMemSpaceUsed = 0;
+
+    memset(host.printersAlloc, 0, MAX_PRINTERS);
+    memset(host.scannersAlloc, 0, MAX_SCANNERS);
+    memset(host.modemsAlloc, 0, MAX_MODEMS);
+    memset(host.disksAlloc, 0, MAX_DISKS);
+    memset(host.memSpace, 0, MAX_MEMSPACE);
+
+
+
 
     // Init all queues to be separate queues 
     dispatcher = initializeQueue();

@@ -22,6 +22,17 @@ int cpuTime;
 Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
 
 // Function prototypes
+void freeHostResources(PCB *process);
+
+int checkResourcesFreeFirstFit(int numResourcesReq, int pid, int numHostResources, int *hostResources);
+int allocatePrinters(PCB *process);
+int allocateScanners(PCB *process);
+int allocateModems(PCB *process);
+int allocateDisks(PCB *process);
+int allocateRealTimeMemory(PCB *process);
+int allocateMemory(PCB *process);
+
+int addToQueues(PCB *process);
 void readFile(char *filename, Queue *dispatcher);
 void printPCBInfo(PCB *process);
 int *stringToInts(char *string);
