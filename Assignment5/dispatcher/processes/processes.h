@@ -19,49 +19,11 @@
 #define TERMINATED 3
 
 
-typedef struct host {
-    int numPrinters;
-    int printersAlloc[MAX_PRINTERS];
+// Defining time quantum
+#define P1_TIMEQUANTUM 1
+#define P2_TIMEQUANTUM 2
+#define P3_TIMEQUANTUM 3
 
-    int numScanners;
-    int scannersAlloc[MAX_SCANNERS];
-
-    int numModems;
-    int modemsAlloc[MAX_MODEMS];
-   
-    int numDisks;
-    int disksAlloc[MAX_DISKS];
-
-    int memSpaceMax;
-    int memSpace[MAX_MEMSPACE];
-    int rtMemSpaceMax;
-    int rtMemSpaceUsed;
-
-} HOSTResources;
-
-// Global variables
-HOSTResources host;
-
-// Struct definitions
-typedef struct pcb {
-    int pid;
-    int priority;
-    int arrivalTime;
-    int remainingTime;
-
-    int state;
-
-    struct PCBIO *IO;
-} PCB;
-
-/*
-typedef struct pcbStatus {
-    int started;
-    int running;
-    int suspended;
-    int terminated;
-} PCBStatus;
-*/
 
 //TODO: this define the process's resources, but also stands for the system's resources as a global var?
 typedef struct PCBIO {
@@ -85,6 +47,57 @@ typedef struct PCBIO {
     int memSpaceHave;
     int memSpaceStartID;
 } PCBIO;
+
+// Struct definitions
+typedef struct pcb {
+    int pid;
+    int priority;
+    int arrivalTime;
+    int remainingTime;
+
+    int timeSpliceLeft;
+
+    int state;
+
+    struct PCBIO *IO;
+} PCB;
+
+typedef struct host {
+    int numPrinters;
+    int printersAlloc[MAX_PRINTERS];
+
+    int numScanners;
+    int scannersAlloc[MAX_SCANNERS];
+
+    int numModems;
+    int modemsAlloc[MAX_MODEMS];
+   
+    int numDisks;
+    int disksAlloc[MAX_DISKS];
+
+    int memSpaceMax;
+    int memSpace[MAX_MEMSPACE];
+    int rtMemSpaceMax;
+    int rtMemSpaceUsed;
+
+    PCB *currentProcess;
+
+} HOSTResources;
+
+// Global variables
+HOSTResources host;
+
+
+
+/*
+typedef struct pcbStatus {
+    int started;
+    int running;
+    int suspended;
+    int terminated;
+} PCBStatus;
+*/
+
 
 // Function prototypes
 void function(void);

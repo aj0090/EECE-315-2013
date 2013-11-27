@@ -51,8 +51,7 @@ Queue* dequeueProcess(Queue **queuePtrAddress) {
 
         Queue *tmp = *queuePtrAddress;
 	if((*queuePtrAddress)->next == NULL){
-		*queuePtrAddress = NULL;			
-		printf("SHIT\n");
+		*queuePtrAddress = NULL;
 		//return NULL;	
 	}
 	else {

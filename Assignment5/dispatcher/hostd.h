@@ -25,6 +25,8 @@ Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
 void freeHostResources(PCB *process);
 
 
+void doProcessing(int time, int rtUpdated);
+
 void enqueueToPriority(PCB *process);
 int checkResourcesFreeFirstFit(int numResourcesReq, int pid, int numHostResources, int *hostResources);
 int allocatePrinters(PCB *process);

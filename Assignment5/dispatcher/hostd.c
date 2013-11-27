@@ -22,11 +22,16 @@ int main(int argc, char **argv) {
 
 
    int time = 0;
+   int rtUpdated;
 
    while(time < 25){
 	printf("Time: %d\n", time);
-	updateDispatcher(time);
+	rtUpdated = updateDispatcher(time);
+
+	doProcessing(time, rtUpdated);
+	
 	time++;
+	//sleep(1);
    }
 
 
@@ -60,12 +65,108 @@ int main(int argc, char **argv) {
 
 
 
+
+void doProcessing(int time, int rtUpdated)
+{
+	// Switching processes goes here
+
+	printf("HELLO!\n");
+
+	if(host.currentProcess == NULL && time >= 13){
+		printf("current process is null.\n");
+		host.currentProcess = dequeueProcess(&realTimeQueue);
+	}
+
+	//freeHostResources(host.currentProcess);
+/*
+	// REPLACEMENT CHECK
+	if(host.currentProcess != NULL){
+		
+		// Current process priority is not zero, therefore not realtime
+		if(host.currentProcess->priority != 0){
+
+			// If realtime processes were updated
+			if(rtUpdated)
+			{
+				// Move the process back to its queue, and keep the remaining timesplice on it
+				host.currentProcess->state = SUSPENDED;
+				enqueueToPriority(host.currentProcess);
+
+				// Enqueue the realtime process
+				if(realTimeQueue->process != NULL)
+				{
+					host.currentProcess = dequeueProcess(&realTimeQueue);
+				}
+			}
+			
+		}
+
+	}
+	// Processor does not have a process currently
+	else{
+	
+		if(p1Queue->process != NULL)
+		{
+			host.currentProcess = dequeueProcess(&p1Queue);
+			host.currentProcess->timeSpliceLeft = P1_TIMEQUANTUM;
+		}
+		else if(p2Queue->process != NULL)
+		{
+			host.currentProcess = dequeueProcess(&p2Queue);
+			host.currentProcess->timeSpliceLeft = P2_TIMEQUANTUM;
+		}
+		else if(p3Queue->process != NULL)
+		{
+			host.currentProcess = dequeueProcess(&p3Queue);
+			host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;
+		}
+	
+	}
+
+	// Actual processing goes here
+
+	if(host.currentProcess != NULL){
+		host.currentProcess->state = RUNNING;
+		host.currentProcess->timeSpliceLeft--;
+		printf("Time splice left: %d\n", host.currentProcess->timeSpliceLeft);
+		
+		// Process has no time splice left
+		if(host.currentProcess->remainingTime == 0)
+		{
+			printf("Process finished running!\n");
+			freeHostResources(host.currentProcess);
+			host.currentProcess->state = TERMINATED;
+			//free(host.currentProcess);
+			host.currentProcess = NULL;
+		}/*
+		else if(host.currentProcess->timeSpliceLeft == 0)
+		{
+			printf("WHAT\n");
+			if(host.currentProcess->priority < 3 && host.currentProcess->priority >= 1)
+			{
+				printf("huh.\n");
+				host.currentProcess->priority++;
+				enqueueToPriority(host.currentProcess);
+				host.currentProcess = NULL;
+			}
+		}
+	}*/
+
+
+	// Process termination/transcending of queues goes here
+}
+
+
+
 // Returns 1 if theres a new process placed in the Realtime Queue,
 // else returns 0
 int updateDispatcher(int time)
 {
+    // Create a pointer to the dispatcher so we don't modify dispatcher directly 
+    // unless we need to
     Queue *queuePtr = dispatcher;
 
+    // Create a new queue for elements that weren't able to be added.
     Queue *newDispatcher = initializeQueue();
     int rtQUpdated = 0;
 
@@ -75,40 +176,51 @@ int updateDispatcher(int time)
     }
 
     // Iterate through each element in the queue
-
     int i = 0;
     int count = numElems(queuePtr);
 
+    // If the first process is NULL, we don't want to iterate through them
+    // (double check that there are elements in queue)
     if(queuePtr->process == NULL)
 	i = count;
+
+    // Keep an indicator to see if anything breaks
     int broken = 0;
-    printf("Num elems: %d\n", count);
+    //printf("Num elems: %d\n", count);
+
+    // Iterate through each element in the dispatcher
     while (i < count) {
 
 	
-	printf("%d/%d\n", i + 1, count);
+	//printf("%d/%d\n", i + 1, count);
 	//dequeueProcess(&queuePtr);
 		
+        // Dequeue the next process from the queue
 	PCB *currentProcess = dequeueProcess(&queuePtr)->process;
 
         // Queue is empty.
+        // (Triple check)
 	if(currentProcess == NULL){
 		printf("BROKEN!\n");
 		broken = 1;
 		break;
 	}
 
+	// If the process has "arrived", attempt to allocate resources to it
 	if(time >= currentProcess->arrivalTime){
-		printf("HELLO from PID: %d!\n", currentProcess->pid);
-		// If a realtime process was added, set the return variable to true
+		//printf("HELLO from PID: %d!\n", currentProcess->pid);
+		// Attempt to allocate resources to the process.
 		int allocResult = allocateResources(currentProcess); 
+
+		// Resources were allocated successfully
 		if(allocResult)
 		{
 			// Send the process to join the appropriate priority queue
 			printf("Successful add!\n");
 			enqueueToPriority(currentProcess);
-			rtQUpdated = allocResult == 2;
+			rtQUpdated = (allocResult == 2);
 		}
+ 		// Resources could not be allocated for it.
 		else
 		{
 			// Throw the process back on the dispatcher queue
@@ -116,20 +228,20 @@ int updateDispatcher(int time)
 			enqueueProcess(newDispatcher, currentProcess);
 		}
 	}
+	// The time has not come for this process, add it to the new dispatcher.
 	else{
 		enqueueProcess(newDispatcher, currentProcess);
 	}
-	printf("heere?\n");
 	i++;
     }
-
+    // If the queue wasn't broken, 
     if(!broken){
 	    if(dispatcher == NULL){
-	    	//cleanQueue(dispatcher);
+	    	cleanQueue(dispatcher);
 	    }
 	    dispatcher = newDispatcher;
     }
-    printf("here?\n");
+    //printf("here?\n");
     return rtQUpdated;
 }
 
@@ -149,7 +261,7 @@ void enqueueToPriority(PCB *process)
 	{
 		enqueueProcess(p2Queue, process);
 	}
-	else if(p == 3)
+	else
 	{
 		enqueueProcess(p3Queue, process);
 	}
@@ -200,23 +312,32 @@ void freeHostResources(PCB *process)
 {
 	int i = 0;
 	printf("Freeing processes resources!\n");
-	for(i = 0; i < process->IO->printersHave; i++){
-		host.printersAlloc[i + process->IO->printerStartID] = 0;
+
+
+	printf("Printers: %d/%d", process->IO->printerStartID, host.numPrinters);
+	
+	for(i = process->IO->printerStartID; i < process->IO->printerStartID + process->IO->printersHave; i++){
+		host.printersAlloc[i] = 0;
 	}
-	for(i = 0; i < process->IO->scannersHave; i++){
-		host.scannersAlloc[i + process->IO->scannerStartID] = 0;
+	printf("Printer freed!\n");
+	for(i = process->IO->scannerStartID; i < (process->IO->scannerStartID + process->IO->scannersHave); i++){
+		host.scannersAlloc[i] = 0;
 	}
-	for(i = 0; i < process->IO->modemsHave; i++){
-		host.modemsAlloc[i + process->IO->modemStartID] = 0;
+	printf("Scanner freed!\n");
+	for(i = process->IO->modemStartID; i < (process->IO->modemStartID + process->IO->modemsHave); i++){
+		host.modemsAlloc[i] = 0;
 	}
-	for(i = 0; i < process->IO->disksHave; i++){
-		host.disksAlloc[i + process->IO->diskStartID] = 0;
+	printf("modem freed!\n");
+	for(i = process->IO->diskStartID; i < (process->IO->diskStartID + process->IO->disksHave); i++){
+		host.disksAlloc[i] = 0;
 	}
-	for(i = 0; i < process->IO->memSpaceHave; i++){
-		host.memSpace[i + process->IO->memSpaceStartID] = 0;
+	printf("CD drive freed!\n");
+	for(i = process->IO->memSpaceStartID; i < (process->IO->memSpaceStartID + process->IO->memSpaceHave); i++){
+		host.memSpace[i] = 0;
 	}
 
 
+	printf("Finished freeing resources!\n");
 }
 
 
@@ -366,7 +487,7 @@ int allocateDisks(PCB *process)
 {
 	// No modems are needed, therefore return true
 	if(process->IO->disksNeeded == 0){
-		printf("No disks needed.\n");
+		//printf("No disks needed.\n");
 		return 1;
 	}
 
@@ -402,7 +523,7 @@ int allocateRealTimeMemory(PCB *process)
 	}
 
 
-	printf("hi\n");
+	//printf("hi\n");
 	// Pass the same array, but only let it see the first 96 bytes (since this is
 	// is a real time process)
 	int startCursor = checkResourcesFreeFirstFit(process->IO->memSpaceNeeded, process->pid, host.rtMemSpaceMax, host.memSpace);
@@ -413,7 +534,7 @@ int allocateRealTimeMemory(PCB *process)
 	// Adequate resources are available starting at startCursor
 	if(startCursor != -1)
 	{
-		printf("PID: %d\n", process->pid);
+		//printf("PID: %d\n", process->pid);
 		//memset(host.memSpace + startCursor, process->pid, process->IO->memSpaceNeeded);
 		// Allocate the scannerss with the process PID
 		for(i = startCursor; i < startCursor + process->IO-> memSpaceNeeded; i++){
@@ -421,7 +542,7 @@ int allocateRealTimeMemory(PCB *process)
 		}
 		// Update the number of scanners inside the process
 		process->IO->memSpaceHave = process->IO->memSpaceNeeded;
-		printf("Allocated %d MByte's starting at disk #%d!\n", process->IO->memSpaceHave, startCursor);
+		printf("Allocated %d MByte's starting at address #%d!\n", process->IO->memSpaceHave, startCursor);
 		process->IO->memSpaceStartID = startCursor;
 		return 1;
 	}
@@ -453,7 +574,7 @@ int allocateMemory(PCB *process)
 		}
 		// Update the number of scanners inside the process
 		process->IO->memSpaceHave = process->IO->memSpaceNeeded;
-		printf("Allocated %d MByte's starting at disk #%d!\n", process->IO->memSpaceHave, startCursor + host.rtMemSpaceMax);
+		printf("Allocated %d MByte's starting at address #%d!\n", process->IO->memSpaceHave, startCursor + host.rtMemSpaceMax);
 		process->IO->memSpaceStartID = startCursor + host.rtMemSpaceMax;
 		return 1;
 	}
@@ -598,6 +719,9 @@ PCB *newPCB(void) {
     newPCB->priority = 0;
     newPCB->arrivalTime = 0;
     newPCB->remainingTime = 0;
+
+    newPCB->timeSpliceLeft = 0; 
+
     newPCB->state = STARTED;
     newPCB->IO = newPCBIO;
 
@@ -633,6 +757,7 @@ void initSystem(void) {
     host.memSpaceMax = MAX_MEMSPACE;
     host.rtMemSpaceMax = MAX_RTMEMSPACE;
     host.rtMemSpaceUsed = 0;
+    host.currentProcess = NULL;
 
     memset(host.printersAlloc, 0, MAX_PRINTERS);
     memset(host.scannersAlloc, 0, MAX_SCANNERS);
