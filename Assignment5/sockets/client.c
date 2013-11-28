@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     WSADATA wsaData;  //The WSADATA structure contains information about the Windows Sockets implementation.
     struct addrinfo *result = NULL, *ptr = NULL, hints;  //Struct holding data used for connecting
     SOCKET sock = INVALID_SOCKET;
-    char *message = "Hello, I am a client!";  //Message to send to server
+    char *message = "Hello! I am a client!";  //Message to send to server
     char recv_buffer[BUFFERL];  //Buffer to receive reply from server
 
     // Validate the parameters
