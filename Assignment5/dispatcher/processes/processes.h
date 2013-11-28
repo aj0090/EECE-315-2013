@@ -2,7 +2,6 @@
 #define PROCESSES_H
 
 // Includes
-//#include <stdio.h>
 
 // Constants
 #define MAX_PRINTERS 2
@@ -12,26 +11,26 @@
 #define MAX_MEMSPACE 1024
 #define MAX_RTMEMSPACE 96
 
-// Defining states
+// Define states
+// TODO: we should prepend the states with STATE_
 #define STARTED 0
 #define RUNNING 1
 #define SUSPENDED 2
 #define TERMINATED 3
 
-
-// Defining time quantum
+// Define time quantum
 #define P1_TIMEQUANTUM 1
 #define P2_TIMEQUANTUM 2
 #define P3_TIMEQUANTUM 3
 
-
-//TODO: this define the process's resources, but also stands for the system's resources as a global var?
+// Struct definitions
+// A process's resources
 typedef struct PCBIO {
     int printersNeeded;
     int printersHave;
     int printerStartID;
 
-    int scannersNeeded; 
+    int scannersNeeded;
     int scannersHave;
     int scannerStartID;
 
@@ -48,13 +47,14 @@ typedef struct PCBIO {
     int memSpaceStartID;
 } PCBIO;
 
-// Struct definitions
+// A process
 typedef struct pcb {
     int pid;
     int priority;
     int arrivalTime;
     int remainingTime;
 
+    // TODO: difference between this and remainingTime?
     int timeSpliceLeft;
 
     int state;
@@ -62,6 +62,7 @@ typedef struct pcb {
     struct PCBIO *IO;
 } PCB;
 
+// The host
 typedef struct host {
     int numPrinters;
     int printersAlloc[MAX_PRINTERS];
@@ -71,7 +72,7 @@ typedef struct host {
 
     int numModems;
     int modemsAlloc[MAX_MODEMS];
-   
+
     int numDisks;
     int disksAlloc[MAX_DISKS];
 
@@ -81,25 +82,11 @@ typedef struct host {
     int rtMemSpaceUsed;
 
     PCB *currentProcess;
-
 } HOSTResources;
 
 // Global variables
 HOSTResources host;
 
-
-
-/*
-typedef struct pcbStatus {
-    int started;
-    int running;
-    int suspended;
-    int terminated;
-} PCBStatus;
-*/
-
-
 // Function prototypes
-void function(void);
 
 #endif
