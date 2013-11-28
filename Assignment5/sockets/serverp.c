@@ -2,25 +2,23 @@
 #include <stdio.h>
 #include <conio.h>
 #include <tchar.h>
+#include "constantsp.h"
 
-#define SERV_PIPE "\\\\.\\pipe\\serv_pipe"
-#define PIPE_BUFFER_SIZE 1024
-#define MESG_BUFFER_SIZE 80
-#define TIMEOUT 2000
 
 int main()
 {
     HANDLE h;  //Handle for the pipe
-    DWORD dwBytesRead;  //Number of bytes read from the pipe
-    DWORD dwWritten;  //Number of bytes written to the pipe
+    DWORD dwBytesRead = 0; //Number of bytes read from the pipe
+    DWORD dwWritten = 0; //Number of bytes written to the pipe
     TCHAR recv_buf[MESG_BUFFER_SIZE];  //Buffer to store stream from pipe in
-    LPTSTR send_buf = TEXT("Hello! I am a server!");  //Buffer to store message to write
+    LPTSTR send_buf = TEXT(SERVER_MSG);  //Buffer to store message to write
+    BOOL success = FALSE;  //bool for storing operation success
 
     // Create a named pipe
     h = CreateNamedPipe(
             SERV_PIPE,  //Name of the pipe as defined above
             PIPE_ACCESS_DUPLEX,  //OpenMode: bidirectional
-            //RW stream of bytes, blocking
+            //RW messages, blocking
             PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
             PIPE_UNLIMITED_INSTANCES,  //Instances of the pipe that can be created
             PIPE_BUFFER_SIZE,  //Input buffer size
@@ -31,39 +29,44 @@ int main()
     // In case of an invalid handle, die
     if (h == INVALID_HANDLE_VALUE)
     {
-        printf("Pipe creation failed, ERR %d\n", GetLastError());
+        printf("Pipe creation failed; Error code: %d\n", GetLastError());
         return 1;
     }
+
     // If we got a valid handle, connect to the pipe
     ConnectNamedPipe(h, NULL);
-    printf("Pipe successfully created and connected. :)\n"); fflush(stdout);
-    // While the client sends data, receive it
-    while (1)
-    {
-        if (!ReadFile(
-                    h,
-                    recv_buf,
-                    MESG_BUFFER_SIZE * sizeof(TCHAR),
-                    &dwBytesRead,
-                    NULL))
-            break;
-    }
-    //Print received message
-    printf("Message from client: %s\n", recv_buf); fflush(stdout);
+    if (DEBUG)printf("Pipe successfully created and connected. :)\n");
 
-    //sprintf(send_buf, "Hello! I am a server!");
-    if (!WriteFile(
-                h,
-                send_buf,
-                (lstrlen(send_buf) + 1)*sizeof(TCHAR),
-                &dwWritten,
-                NULL))
+    // While the client sends data, receive it
+    do
     {
-        printf("Failed to write to the pipe. :( ERR %d\n", GetLastError()); fflush(stdout);
+        success = ReadFile(
+                      h,  //Handle to pipe
+                      recv_buf,  //Buffer to store read message
+                      MESG_BUFFER_SIZE * sizeof(TCHAR),  //Size of message to read
+                      &dwBytesRead,  //Address of variable that stores num. bytes read
+                      NULL  //Not using overlapped
+                  );
+    }
+    while (!success);
+    //Print received message
+    printf("Message from client: %s\n", recv_buf);
+
+    //Write a reply
+    if (!WriteFile(
+                h,  //Handle to pipe
+                send_buf,  //Message to send
+                (lstrlen(send_buf) + 1)*sizeof(TCHAR),  //Size of message to send
+                &dwWritten,  //Number of bytes written
+                NULL  //Overlapped not used
+            )
+       )
+    {
+        printf("Failed to write to the pipe; Error code: %d\n", GetLastError());
         return 1;
     }
 
-    //Disconnect pipe, close handle
+    //Flush pipe, disconnect pipe, close handle
     FlushFileBuffers(h);
     DisconnectNamedPipe(h);
     CloseHandle(h);
