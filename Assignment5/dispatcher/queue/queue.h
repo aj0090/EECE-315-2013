@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../processes/processes.h"
+#include "../resources/pcb.h"
 
 //Remove line when implementing actual data structure in queue
 typedef int replaceMe;

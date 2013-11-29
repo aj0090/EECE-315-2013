@@ -8,7 +8,7 @@
 //#include <signal.h>
 //#include <sys/types.h>
 #include <string.h>
-#include "processes/processes.h"
+#include "resources/pcb.h"
 #include "queue/queue.h"
 
 // Constants
@@ -16,7 +16,9 @@
 #define FILE_BUFFER 100
 
 // Define VERBOSE to 1 for debugging outputs
-#define VERBOSE 1
+#define VERBOSE 0
+// Define VVERBOSE to 1 for memory maps
+#define VVERBOSE 1
 
 // Global variables
 int cpuTime;

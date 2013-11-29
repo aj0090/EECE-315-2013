@@ -52,7 +52,7 @@ Queue* dequeueProcess(Queue **queuePtrAddress) {
         Queue *tmp = *queuePtrAddress;
 	if((*queuePtrAddress)->next == NULL){
 		*queuePtrAddress = NULL;
-		//return NULL;	
+		//return NULL;
 	}
 	else {
         	(*queuePtrAddress) = (*queuePtrAddress)->next;
@@ -126,7 +126,7 @@ int numElems(Queue *queuePtr) {
 //EFFECTS: Returns information about the queue;
 void printQueue(Queue *queuePtr) {
         if (!(queuePtr) || queuePtr->process == NULL) {
-                printf("The queue is empty!\n\n");
+                printf("The queue is empty!\n");
                 return;
         }
 
@@ -135,5 +135,5 @@ void printQueue(Queue *queuePtr) {
                 printf(", %d", queuePtr->next->process->pid);
                 queuePtr = queuePtr->next;
         }
-        printf("\n\n");
+        printf("\n");
 }

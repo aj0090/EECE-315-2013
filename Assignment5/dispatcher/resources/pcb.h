@@ -1,5 +1,5 @@
-#ifndef PROCESSES_H
-#define PROCESSES_H
+#ifndef PCB_H
+#define PCB_H
 
 // Includes
 
@@ -86,7 +86,5 @@ typedef struct host {
 
 // Global variables
 HOSTResources host;
-
-// Function prototypes
 
 #endif
