@@ -1,4 +1,4 @@
-cl serverp.c
-cl server.c
-cl clientp.c
-cl client.c
+cl Pipes/serverp.c
+cl Sockets/server.c
+cl Pipes/clientp.c
+cl Sockets/client.c
