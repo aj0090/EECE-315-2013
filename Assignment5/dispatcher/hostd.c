@@ -1,5 +1,9 @@
 #include "hostd.h"
 
+// A process dispatcher program
+// @par: int                number of arguments
+// @par: pointer pointer    process list file
+// @ret: int
 int main(int argc, char **argv) {
     if (argc != 2) {
         // Print directions if the file is not supplied and exit
@@ -15,28 +19,32 @@ int main(int argc, char **argv) {
     if (VERBOSE) printf("Done processing %s!\n", filename);
 
     int time = 0;
-    // TODO: what is rtUpdated? That a realtime process has been added?
+    //TODO: what does this rep? that the rtq has been updated or that a new process has been added to it?
     int rtUpdated;
 
     // The system is running
-    while (time < 25) {
+    while (time < 30) {
         printf("===============================================================================================================================\n");
         printf("Time (Quantum): %d\n", time);
         printf("===============================================================================================================================\n");
 
-        //TODO: what does this rep? that the rtq has been updated or that a new process has been added?
+        //TODO: what does this rep? that the rtq has been updated or that a new process has been added to it?
         rtUpdated = updateDispatcher(time);
 
         if (VVERBOSE) {
             printf("Current %d MByte memory map (each line is 64 Mbyte).\n", host.memSpaceMax);
             int memUnit;
-            int memBlock;
-            for(memUnit = 0; memUnit < host.memSpaceMax; memUnit++) {
+            for(memUnit = 0; memUnit < MAX_MEMSPACE; memUnit++) {
                 if (host.memSpace[memUnit] != 0) {
                     printf("%d ", host.memSpace[memUnit]);
                 } else {
-                    printf("_ ");
+                    if (memUnit < MAX_RTMEMSPACE) {
+                        printf(". ");
+                    } else {
+                        printf("_ ");
+                    }
                 }
+
                 if ((memUnit + 1) % 64 == 0) {
                     printf("\n");
                 }
@@ -84,21 +92,26 @@ int main(int argc, char **argv) {
 
 
 
-//TODO work on this section below
+//TODO need to work on this section below
 
 
+// Simulates one processing cycle
+// @par: int    current time (quantum)
+// @par: int    ??? the status of the rtq (if a process is in it?)
+// @ret: none
 void doProcessing(int time, int rtUpdated)
 {
+    // TODO DEBUG, still need this?
     // Switching processes goes here
     /*
        printf("HELLO!\n");
 
-       if(host.currentProcess == NULL && time >= 12){
+       if (host.currentProcess == NULL && time >= 12) {
        printf("current process is null.\n");
        host.currentProcess = p1Queue->process;
        dequeueProcess(&p1Queue);
        }
-       if(host.currentProcess != NULL){
+       if (host.currentProcess != NULL) {
        printf("host printers: %d\n", host.numPrinters);
        printf("current printer: %d\n", host.currentProcess->IO->printerStartID);
        freeHostResources(host.currentProcess);
@@ -106,110 +119,96 @@ void doProcessing(int time, int rtUpdated)
        */
     // REPLACEMENT CHECK
 
-    // TODO: analyze this section...
-    printf("\n\nIN PROCESSOR\n");
+    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROCESSOR CYCLE +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
-
+    // TODO: i just need to clearly understand what this represents and it's all good
     printf("rtUpdated: %d\n", rtUpdated);
-    if(host.currentProcess != NULL){
 
-        // Current process priority is not zero, therefore not realtime
-        if(host.currentProcess->priority != 0){
-
-            // If realtime processes were updated
-            if(rtUpdated)
-            {
-                // Move the process back to its queue, and keep the remaining timesplice on it
+    // TODO: is this just checking & prepping the queues? (aka checking for realtime processes?)
+    if (host.currentProcess != NULL) {
+        // If current process not zero then not realtime
+        if (host.currentProcess->priority != 0) {
+            // If realtime queue was updated, move current process back to its queue and keep the remaining timesplice on it
+            if (rtUpdated) {
                 host.currentProcess->state = SUSPENDED;
+                printf("SUSPENDED pid %d\n", host.currentProcess->pid);
+
                 enqueueToPriority(host.currentProcess);
 
                 // Enqueue the realtime process
-                if(realTimeQueue->process != NULL)
-                {
+                // TODO: should we print anything?
+                if (realTimeQueue->process != NULL) {
                     host.currentProcess = realTimeQueue->process;
                     host.currentProcess->timeSpliceLeft = host.currentProcess->remainingTime;
                     dequeueProcess(&realTimeQueue);
                 }
             }
-
         }
+    } else {
+        // Processor does not have a process currently
+        printf("NO PROCESS QUEUED, SEARCHING...\n");
 
-    }
-    // Processor does not have a process currently
-    else{
-        printf("NO PROCESS, LETS FIND ONE\n");
-        if(rtUpdated){
+        if (rtUpdated) {
             // Enqueue the realtime process
-            if(realTimeQueue){
-                if(realTimeQueue->process != NULL)
-                {
+            if (realTimeQueue) {
+                if (realTimeQueue->process != NULL) {
                     host.currentProcess = realTimeQueue->process;
                     host.currentProcess->timeSpliceLeft = host.currentProcess->remainingTime;
                     dequeueProcess(&realTimeQueue);
-
                 }
             }
-        }
-        else if (p1Queue) {
-            if(p1Queue->process != NULL)
-            {
+        } else if (p1Queue) {
+            if (p1Queue->process != NULL) {
                 host.currentProcess = p1Queue->process;
                 dequeueProcess(&p1Queue);
                 host.currentProcess->timeSpliceLeft = P1_TIMEQUANTUM;
             }
-        }
-        else if(p2Queue) {
-            if(p2Queue->process != NULL)
-            {
+        } else if (p2Queue) {
+            if (p2Queue->process != NULL) {
                 host.currentProcess = p2Queue->process;
                 dequeueProcess(&p2Queue);
                 host.currentProcess->timeSpliceLeft = P2_TIMEQUANTUM;
             }
-        }
-        else if(p3Queue) {
-            if(p3Queue->process != NULL)
-            {
+        } else if (p3Queue) {
+            if (p3Queue->process != NULL) {
                 host.currentProcess = p3Queue->process;
                 dequeueProcess(&p3Queue);
                 host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;
             }
-        }
-        else{
+        } else {
             return;
         }
-
     }
 
     // Actual processing goes here
-
-    if(host.currentProcess != NULL){
+    if (host.currentProcess != NULL) {
         host.currentProcess->state = RUNNING;
         host.currentProcess->timeSpliceLeft--;
         host.currentProcess->remainingTime--;
-        printf("PID: %d\n", host.currentProcess->pid);
+        printf("RUNNING pid: %d\n", host.currentProcess->pid);
+
+        //TODO: what is the difference between time splice left and remaining time? Especially look at next comment
         printf("Time splice left: %d, remaining time: %d\n", host.currentProcess->timeSpliceLeft, host.currentProcess->remainingTime);
 
         // Process has no time splice left
-        if(host.currentProcess->remainingTime == 0)
-        {
-            printf("Process finished running!\n");
+        if (host.currentProcess->remainingTime == 0) {
             freeHostResources(host.currentProcess);
             host.currentProcess->state = TERMINATED;
+            printf("TERMINATED pid: %d, process completed!\n", host.currentProcess->pid);
             free(host.currentProcess);
             host.currentProcess = NULL;
-        }
-        else if(host.currentProcess->timeSpliceLeft == 0)
-        {
+        } else if (host.currentProcess->timeSpliceLeft == 0) {
+            //
+            //TODO: i think if we clear this up we can get rid of the "WHAT"
+            // is this when the process gets bumped down a queue priority?
             printf("WHAT\n");
-            if(host.currentProcess->priority < 3 && host.currentProcess->priority >= 1)
-            {
+            if (host.currentProcess->priority < 3 && host.currentProcess->priority >= 1) {
+                //TODO
                 printf("huh.\n");
                 host.currentProcess->priority++;
                 enqueueToPriority(host.currentProcess);
                 host.currentProcess = NULL;
-            }
-            else if(host.currentProcess->priority >= 3)
-            {
+            } else if (host.currentProcess->priority >= 3) {
                 host.currentProcess->timeSpliceLeft = P3_TIMEQUANTUM;
                 host.currentProcess->priority = 1;
                 enqueueToPriority(host.currentProcess);
@@ -217,9 +216,7 @@ void doProcessing(int time, int rtUpdated)
             }
         }
     }
-
-
-    // Process termination/transcending of queues goes here
+    // TODO Process termination/transcending of queues goes here
 }
 
 
@@ -246,7 +243,7 @@ int updateDispatcher(int time)
 
     // If the first process is NULL, we don't want to iterate through them
     // (double check that there are elements in queue)
-    if(queuePtr->process == NULL)
+    if (queuePtr->process == NULL)
         i = count;
 
     // Keep an indicator to see if anything breaks
@@ -265,47 +262,41 @@ int updateDispatcher(int time)
 
         // Queue is empty.
         // (Triple check)
-        if(currentProcess == NULL){
+        if (currentProcess == NULL) {
             printf("BROKEN!\n");
             broken = 1;
             break;
         }
 
         // If the process has "arrived", attempt to allocate resources to it
-        if(time >= currentProcess->arrivalTime){
+        if (time >= currentProcess->arrivalTime) {
             //printf("HELLO from PID: %d!\n", currentProcess->pid);
             // Attempt to allocate resources to the process.
             int allocResult = allocateResources(currentProcess);
 
             // Resources were allocated successfully
-            if(allocResult)
-            {
+            if (allocResult) {
                 // Send the process to join the appropriate priority queue
                 printf("Successful add!\n");
                 enqueueToPriority(currentProcess);
-                if(currentProcess->priority == 0) {
+                if (currentProcess->priority == 0) {
                     rtQUpdated = 1;
                     printf("RT: %d\n", rtQUpdated);
                 }
                 printf("\n\n");
-            }
-            // Resources could not be allocated for it.
-            else
-            {
-                // Throw the process back on the dispatcher queue
-                printf("Not enough resources!\n");
+            } else {
+                // Resources could not be allocated for it, throw the process back on the dispatcher queue
                 enqueueProcess(newDispatcher, currentProcess);
             }
-        }
+        } else {
         // The time has not come for this process, add it to the new dispatcher.
-        else{
             enqueueProcess(newDispatcher, currentProcess);
         }
         i++;
     }
     // If the queue wasn't broken,
-    if(!broken){
-        if(dispatcher == NULL){
+    if (!broken) {
+        if (dispatcher == NULL) {
             cleanQueue(dispatcher);
         }
         dispatcher = newDispatcher;
@@ -318,27 +309,27 @@ int updateDispatcher(int time)
 void enqueueToPriority(PCB *process)
 {
     int p = process->priority;
-    if(p == 0)
+    if (p == 0)
     {
-        if(!realTimeQueue)
+        if (!realTimeQueue)
             realTimeQueue = initializeQueue();
         enqueueProcess(realTimeQueue, process);
     }
-    else if(p == 1)
+    else if (p == 1)
     {
-        if(!p1Queue)
+        if (!p1Queue)
             p1Queue = initializeQueue();
         enqueueProcess(p1Queue, process);
     }
-    else if(p == 2)
+    else if (p == 2)
     {
-        if(!p2Queue)
+        if (!p2Queue)
             p2Queue = initializeQueue();
         enqueueProcess(p2Queue, process);
     }
     else
     {
-        if(!p3Queue)
+        if (!p3Queue)
             p3Queue = initializeQueue();
         enqueueProcess(p3Queue, process);
     }

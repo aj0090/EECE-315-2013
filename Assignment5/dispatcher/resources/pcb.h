@@ -9,7 +9,7 @@
 #define MAX_MODEMS 1
 #define MAX_DISKS 2
 #define MAX_MEMSPACE 1024
-#define MAX_RTMEMSPACE 96
+#define MAX_RTMEMSPACE 64
 
 // Define states
 // TODO: we should prepend the states with STATE_
