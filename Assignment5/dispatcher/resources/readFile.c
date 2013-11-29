@@ -19,9 +19,7 @@ void readFile(char *filename, Queue *dispatcher) {
     // Character string for line contents
     char *line = malloc(FILE_BUFFER * sizeof(char));
 
-    // Static int to keep track of PID's, starting at id = 1
-    // TODO: why static? check that we decrement it after a process terminates
-    // http://stackoverflow.com/questions/572547/what-does-static-mean-in-a-c-program
+    // Static int to keep track of PID's, starting at id = 1, increments between invocations for readFile()
     static int pid = 1;
 
     // While process data exists and total number of processes < maximum amount
@@ -56,7 +54,7 @@ void readFile(char *filename, Queue *dispatcher) {
         process->IO->modemsNeeded = args[6];
         process->IO->disksNeeded = args[7];
 
-        if (VVERBOSE) printPCBInfo(process);
+        if (VERBOSE) printPCBInfo(process);
 
         free(args);
 
@@ -67,7 +65,7 @@ void readFile(char *filename, Queue *dispatcher) {
         /*free(process);*/
     }
 
-    if (VVERBOSE) printQueue(dispatcher);
+    if (VERBOSEQ) printQueue(dispatcher);
 
     // Free our memory
     free(line);

@@ -58,8 +58,6 @@ void printPCBInfo(PCB *process) {
 // @par: PCB pointer    process PCB
 // @ret: none
 void freePCB(PCB *process) {
-    // TODO: use this function somewhere and free hosts memory
-
     // Free the PCB's actual memory
     free(process->IO);
     free(process);

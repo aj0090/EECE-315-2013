@@ -18,8 +18,10 @@ int main(int argc, char **argv) {
     readFile(filename, dispatcher);
     if (VERBOSE) printf("Done processing %s!\n", filename);
 
+    // Set CPU start time to 0
     int time = 0;
-    //TODO: what does this rep? that the rtq has been updated or that a new process has been added to it?
+
+    // Flag when a real time process is added to the real time queue
     int rtUpdated;
 
     // The system is running
@@ -28,10 +30,9 @@ int main(int argc, char **argv) {
         printf("Time (Quantum): %d\n", time);
         printf("===============================================================================================================================\n");
 
-        //TODO: what does this rep? that the rtq has been updated or that a new process has been added to it?
         rtUpdated = updateDispatcher(time);
 
-        if (VVERBOSE) {
+        if (VERBOSEMEMMAP) {
             printf("Current %d MByte memory map (each line is 64 Mbyte).\n", host.memSpaceMax);
             int memUnit;
             for(memUnit = 0; memUnit < MAX_MEMSPACE; memUnit++) {
@@ -50,7 +51,9 @@ int main(int argc, char **argv) {
                 }
             }
             printf("\n");
+        }
 
+        if (VERBOSEQ) {
             printf("REAL TIME QUEUE:  ");
             printQueue(realTimeQueue);
 
@@ -63,9 +66,8 @@ int main(int argc, char **argv) {
             printf("PRIORITY 3 QUEUE: ");
             printQueue(p3Queue);
 
-
-            printf("PRINT SOME INFO ABOUT SYSTEM RESOURCES AT EACH STAGE?\n");
-            printf("print info about current process at each stage?\n");
+            //TODO
+            //print info about system resources and per process resources?
         }
 
         doProcessing(time, rtUpdated);
@@ -74,6 +76,7 @@ int main(int argc, char **argv) {
 
         //TODO: If we hide everything else and only print the mem map, with sleep it looks amazing
         //sleep(1);
+        printf("\n");
     }
 
     printf("===============================================================================================================================\n");
@@ -85,58 +88,25 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-
-
-
-
-
-
-
-//TODO need to work on this section below
-
-
 // Simulates one processing cycle
 // @par: int    current time (quantum)
-// @par: int    ??? the status of the rtq (if a process is in it?)
+// @par: int    flag if real time queue updated
 // @ret: none
-void doProcessing(int time, int rtUpdated)
-{
-    // TODO DEBUG, still need this?
-    // Switching processes goes here
-    /*
-       printf("HELLO!\n");
+void doProcessing(int time, int rtUpdated) {
+    printf("------------------------------------------------------- PROCESSOR CYCLE -------------------------------------------------------\n");
 
-       if (host.currentProcess == NULL && time >= 12) {
-       printf("current process is null.\n");
-       host.currentProcess = p1Queue->process;
-       dequeueProcess(&p1Queue);
-       }
-       if (host.currentProcess != NULL) {
-       printf("host printers: %d\n", host.numPrinters);
-       printf("current printer: %d\n", host.currentProcess->IO->printerStartID);
-       freeHostResources(host.currentProcess);
-       }
-       */
-    // REPLACEMENT CHECK
-
-    printf("+++++++++++++++++++++++++++++++++++++++++++++++++++++++ PROCESSOR CYCLE +++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-
-    // TODO: i just need to clearly understand what this represents and it's all good
-    printf("rtUpdated: %d\n", rtUpdated);
-
-    // TODO: is this just checking & prepping the queues? (aka checking for realtime processes?)
+    // Check if current process in a queue
     if (host.currentProcess != NULL) {
         // If current process not zero then not realtime
         if (host.currentProcess->priority != 0) {
             // If realtime queue was updated, move current process back to its queue and keep the remaining timesplice on it
             if (rtUpdated) {
                 host.currentProcess->state = SUSPENDED;
-                printf("SUSPENDED pid %d\n", host.currentProcess->pid);
+                printf("* SUSPENDED pid: %d\n", host.currentProcess->pid);
 
                 enqueueToPriority(host.currentProcess);
 
                 // Enqueue the realtime process
-                // TODO: should we print anything?
                 if (realTimeQueue->process != NULL) {
                     host.currentProcess = realTimeQueue->process;
                     host.currentProcess->timeSpliceLeft = host.currentProcess->remainingTime;
@@ -146,7 +116,7 @@ void doProcessing(int time, int rtUpdated)
         }
     } else {
         // Processor does not have a process currently
-        printf("NO PROCESS QUEUED, SEARCHING...\n");
+        printf("NO PROCESS RUNNING, SEARCHING FOR ANOTHER...\n");
 
         if (rtUpdated) {
             // Enqueue the realtime process
@@ -185,26 +155,20 @@ void doProcessing(int time, int rtUpdated)
         host.currentProcess->state = RUNNING;
         host.currentProcess->timeSpliceLeft--;
         host.currentProcess->remainingTime--;
-        printf("RUNNING pid: %d\n", host.currentProcess->pid);
+        printf("* RUNNING pid: %d\n", host.currentProcess->pid);
 
-        //TODO: what is the difference between time splice left and remaining time? Especially look at next comment
-        printf("Time splice left: %d, remaining time: %d\n", host.currentProcess->timeSpliceLeft, host.currentProcess->remainingTime);
+        if (VERBOSE) printf("Time splice left in this queue: %d, total remaining time: %d\n", host.currentProcess->timeSpliceLeft, host.currentProcess->remainingTime);
 
-        // Process has no time splice left
         if (host.currentProcess->remainingTime == 0) {
+            // Process has no time splice left in this queue, terminate the process
             freeHostResources(host.currentProcess);
             host.currentProcess->state = TERMINATED;
-            printf("TERMINATED pid: %d, process completed!\n", host.currentProcess->pid);
+            printf("* TERMINATED pid: %d, process completed!\n", host.currentProcess->pid);
             free(host.currentProcess);
             host.currentProcess = NULL;
         } else if (host.currentProcess->timeSpliceLeft == 0) {
-            //
-            //TODO: i think if we clear this up we can get rid of the "WHAT"
-            // is this when the process gets bumped down a queue priority?
-            printf("WHAT\n");
+            // Round robin queuing
             if (host.currentProcess->priority < 3 && host.currentProcess->priority >= 1) {
-                //TODO
-                printf("huh.\n");
                 host.currentProcess->priority++;
                 enqueueToPriority(host.currentProcess);
                 host.currentProcess = NULL;
@@ -216,22 +180,22 @@ void doProcessing(int time, int rtUpdated)
             }
         }
     }
-    // TODO Process termination/transcending of queues goes here
 }
 
-
-
-// Returns 1 if theres a new process placed in the Realtime Queue,
-// else returns 0
-int updateDispatcher(int time)
-{
+// Updates the dispatcher
+// @par: int    current time (quantum)
+// @ret: int    1 for process put into real time queue
+// @ret: int    0 otherwise
+int updateDispatcher(int time) {
     // Create a pointer to the dispatcher so we don't modify dispatcher directly unless we need to
     Queue *queuePtr = dispatcher;
 
-    // Create a new queue for elements that weren't able to be added.
+    // Create a new queue for elements that weren't able to be added
     Queue *newDispatcher = initializeQueue();
+
     int rtQUpdated = 0;
 
+    // Checks if dispatcher is empty
     if (!(queuePtr)) {
         printf("The queue is empty!\n\n");
         return 0;
@@ -242,26 +206,21 @@ int updateDispatcher(int time)
     int count = numElems(queuePtr);
 
     // If the first process is NULL, we don't want to iterate through them
-    // (double check that there are elements in queue)
-    if (queuePtr->process == NULL)
+    // Double check that there are elements in queue
+    if (queuePtr->process == NULL) {
         i = count;
+    }
 
     // Keep an indicator to see if anything breaks
     int broken = 0;
-    //printf("Num elems: %d\n", count);
 
     // Iterate through each element in the dispatcher
     while (i < count) {
-
-
-        //printf("%d/%d\n", i + 1, count);
-        //dequeueProcess(&queuePtr);
-
         // Dequeue the next process from the queue
         PCB *currentProcess = dequeueProcess(&queuePtr)->process;
 
-        // Queue is empty.
-        // (Triple check)
+        // Queue is empty
+        // Triple check
         if (currentProcess == NULL) {
             printf("BROKEN!\n");
             broken = 1;
@@ -270,98 +229,76 @@ int updateDispatcher(int time)
 
         // If the process has "arrived", attempt to allocate resources to it
         if (time >= currentProcess->arrivalTime) {
-            //printf("HELLO from PID: %d!\n", currentProcess->pid);
             // Attempt to allocate resources to the process.
             int allocResult = allocateResources(currentProcess);
 
-            // Resources were allocated successfully
             if (allocResult) {
-                // Send the process to join the appropriate priority queue
-                printf("Successful add!\n");
-                enqueueToPriority(currentProcess);
+                // Resources were allocated successfully
+                printf("* INITIALIZED pid: %d", currentProcess->pid);
                 if (currentProcess->priority == 0) {
                     rtQUpdated = 1;
-                    printf("RT: %d\n", rtQUpdated);
+                    printf(", a real time process");
                 }
                 printf("\n\n");
+
+                // Send the process to join the appropriate priority queue
+                enqueueToPriority(currentProcess);
             } else {
-                // Resources could not be allocated for it, throw the process back on the dispatcher queue
+                // Resources could not be allocated, move the process back on the dispatcher queue
                 enqueueProcess(newDispatcher, currentProcess);
             }
         } else {
-        // The time has not come for this process, add it to the new dispatcher.
+            // The time has not come for this process, add it to the new dispatcher
             enqueueProcess(newDispatcher, currentProcess);
         }
+
         i++;
     }
-    // If the queue wasn't broken,
+
+    // If the queue wasn't broken
     if (!broken) {
         if (dispatcher == NULL) {
             cleanQueue(dispatcher);
         }
         dispatcher = newDispatcher;
     }
-    //printf("here?\n");
+
     return rtQUpdated;
 }
 
-
-void enqueueToPriority(PCB *process)
-{
+// Updates the dispatcher
+// @par: PCB pointer    process PCB
+// @ret: none
+void enqueueToPriority(PCB *process) {
     int p = process->priority;
-    if (p == 0)
-    {
-        if (!realTimeQueue)
+
+    if (p == 0) {
+        if (!realTimeQueue) {
             realTimeQueue = initializeQueue();
+        }
         enqueueProcess(realTimeQueue, process);
-    }
-    else if (p == 1)
-    {
-        if (!p1Queue)
+    } else if (p == 1) {
+        if (!p1Queue) {
             p1Queue = initializeQueue();
+        }
         enqueueProcess(p1Queue, process);
-    }
-    else if (p == 2)
-    {
-        if (!p2Queue)
+    } else if (p == 2) {
+        if (!p2Queue) {
             p2Queue = initializeQueue();
+        }
         enqueueProcess(p2Queue, process);
-    }
-    else
-    {
-        if (!p3Queue)
+    } else {
+        if (!p3Queue) {
             p3Queue = initializeQueue();
+        }
         enqueueProcess(p3Queue, process);
     }
-
-    return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Initializes the system (global variables)
 // @par: none
 // @ret: none
 void initSystem(void) {
-    /*set resource counters*/
-    /*set memory limit*/
-
-    // TODO: what is this i used for? vague name for global variable
-    int i;
-
     host.numPrinters = MAX_PRINTERS;
     host.numScanners = MAX_SCANNERS;
     host.numModems = MAX_MODEMS;
@@ -384,15 +321,13 @@ void initSystem(void) {
     p1Queue = initializeQueue();
     p2Queue = initializeQueue();
     p3Queue = initializeQueue();
-
-    // Set CPU start time to 0
-    cpuTime = 0;
 }
 
 // Shuts down the system (global variables) by freeing memory
 // @par: none
 // @ret: none
 void closeSystem(void) {
+    //TODO anything else here?
     /*reset resource counters?*/
     /*reset memory limit?*/
 

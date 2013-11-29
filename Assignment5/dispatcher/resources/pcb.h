@@ -13,6 +13,7 @@
 
 // Define states
 // TODO: we should prepend the states with STATE_
+// CHANGE STARTED TO INITIALIZED 0
 #define STARTED 0
 #define RUNNING 1
 #define SUSPENDED 2
@@ -53,8 +54,6 @@ typedef struct pcb {
     int priority;
     int arrivalTime;
     int remainingTime;
-
-    // TODO: difference between this and remainingTime?
     int timeSpliceLeft;
 
     int state;

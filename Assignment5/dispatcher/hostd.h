@@ -15,13 +15,16 @@
 #define MAX_PROCESSES 1000
 #define FILE_BUFFER 100
 
-// Define VERBOSE to 1 for debugging outputs
-#define VERBOSE 0
-// Define VVERBOSE to 1 for memory maps
-#define VVERBOSE 1
+// Define for general debugging outputs (eg pcb, time slices)
+#define VERBOSE 1
+// DEFINE for queue information
+#define VERBOSEQ 1
+// Define for memory maps
+#define VERBOSEMEMMAP 1
+// Define for resource info
+#define VERBOSER 1
 
 // Global variables
-int cpuTime;
 Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
 
 // Function prototypes
