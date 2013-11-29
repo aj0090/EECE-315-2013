@@ -21,7 +21,7 @@ Queue* initializeQueue() {
 //REQUIRES: queuePtr is a valid pointer to a Queue, currentProcess is a valid pointer to a process
 //MODIFIES: queuePtr
 //EFFECTS: currentProcess is encapsulated in a Queue data structure, and placed in tail-end of Queue
-void enqueueProcess(Queue *queuePtr, replaceMe *currentProcess) {
+void enqueueProcess(Queue *queuePtr, PCB *currentProcess) {
         if (!queuePtr->isHead) {
                 queuePtr->process = currentProcess;
                 queuePtr->isHead = 1;
@@ -47,13 +47,21 @@ Queue* dequeueProcess(Queue **queuePtrAddress) {
                 return NULL;
         }
 
+
+
         Queue *tmp = *queuePtrAddress;
-        *queuePtrAddress = (*queuePtrAddress)->next;
+	if((*queuePtrAddress)->next == NULL){
+		*queuePtrAddress = NULL;
+		//return NULL;
+	}
+	else {
+        	(*queuePtrAddress) = (*queuePtrAddress)->next;
+	}
 
-        if (*queuePtrAddress)
-                (*queuePtrAddress)->isHead = 1;
+       // if (*queuePtrAddress)
+         //       (*queuePtrAddress)->isHead = 1;
 
-        tmp->next = NULL;
+        //tmp->next = NULL;
 
         return tmp;
 }
@@ -99,20 +107,33 @@ void cleanQueue(Queue *queuePtr) {
         }
 }
 
+int numElems(Queue *queuePtr) {
+        if (!(queuePtr)) {
+                printf("The queue is empty!\n\n");
+                return 0;
+        }
+
+	int count = 1;
+        while (queuePtr->next) {
+                count++;
+                queuePtr = queuePtr->next;
+        }
+        return count;
+}
 
 //NOTE*** Used for debugging purposes if process is of type *int, comment out if using other process type
 //REQUIRES: queuePtr is a valid poitner to a queue
 //EFFECTS: Returns information about the queue;
 void printQueue(Queue *queuePtr) {
-        if (!(queuePtr)) {
-                printf("The queue is empty!\n\n");
+        if (!(queuePtr) || queuePtr->process == NULL) {
+                printf("The queue is empty!\n");
                 return;
         }
 
-        printf("The queue is: %d", *(queuePtr->process));
+        printf("Order of PID's: %d", queuePtr->process->pid);
         while (queuePtr->next) {
-                printf(", %d", *(queuePtr->next->process));
+                printf(", %d", queuePtr->next->process->pid);
                 queuePtr = queuePtr->next;
         }
-        printf("\n\n");
+        printf("\n");
 }
