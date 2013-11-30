@@ -25,7 +25,8 @@ int main(int argc, char **argv) {
     int rtUpdated;
 
     // The system is running
-    while (time < runtime) {
+    /*while (time < runtime) {*/
+    while (time < 20) {
         printf("===============================================================================================================================\n");
         printf("Time (Quantum): %d\n", time);
         printf("===============================================================================================================================\n");
@@ -74,8 +75,7 @@ int main(int argc, char **argv) {
 
         time++;
 
-        //TODO: If we hide everything else and only print the mem map, with sleep it looks amazing
-        //sleep(1);
+        sleep(1);
         printf("\n");
     }
 
