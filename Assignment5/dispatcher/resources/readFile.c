@@ -21,6 +21,7 @@ void readFile(char *filename, Queue *dispatcher) {
 
     // Static int to keep track of PID's, starting at id = 1, increments between invocations for readFile()
     static int pid = 1;
+    runtime = 0;
 
     // While process data exists and total number of processes < maximum amount
     while (fgets(line, FILE_BUFFER, fp) != NULL && pid <= MAX_PROCESSES) {
@@ -46,6 +47,12 @@ void readFile(char *filename, Queue *dispatcher) {
         process->arrivalTime = args[0];
         process->remainingTime = args[2];
         process->state = STARTED;
+
+        // Max of (biggest arrival time + runtime) or sum of all runtimes
+        runtime += process->remainingTime;
+        if ((process->arrivalTime + process->remainingTime) > runtime) {
+            runtime = process->arrivalTime + process->remainingTime;
+        }
 
         // Allocate required resources for the process
         process->IO->memSpaceNeeded = args[3];

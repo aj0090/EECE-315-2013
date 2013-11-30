@@ -26,6 +26,7 @@
 
 // Global variables
 Queue *dispatcher, *realTimeQueue, *userJobQueue, *p1Queue, *p2Queue, *p3Queue;
+int runtime;
 
 // Function prototypes
 void freeHostResources(PCB *process);
