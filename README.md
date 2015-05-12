@@ -1,9 +1,8 @@
-EECE 315 101 2013
-=================
+# EECE 315 101 2013
 
 A repository for code used for EECE 315 101 2013.
 
-[![Build Status](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo.png?token=ZpicHWVRcsKnmG8qc6PB&branch=master)](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo)
+[![Build Status](https://travis-ci.org/tonglil/EECE-315-2013.svg)](https://travis-ci.org/tonglil/EECE-315-2013)
 
 ## Links
 
@@ -11,14 +10,16 @@ A repository for code used for EECE 315 101 2013.
 
 [Google Docs](https://drive.google.com/folderview?id=0B5oHB38MvjcMOWV6MUhWM3BjRUE)
 
-## Make
+## Building
+
+### Make
 
 ```makefile
 make: *.c
     gcc -g -o ProgramName fileX.c fileY.c fileZ.c
 ```
 
-## .h
+### .h
 
 ```c
 #ifndef HEADER_FILE_H
@@ -66,11 +67,8 @@ Create a .valgrindrc file with these settings to simplify your life.
 --show-reachable=yes
 ```
 
-## Travis CI (currently disabled)
+## Travis CI
 
 Travis CI is a continuous integration service that can build and run tests on the repo.
 
-- Builds of the program will only be run from the `stable` branch.
-- You can skip a build on the `stable` branch by putting `[ci skip]` in the commit message.
-
-<!--Our builds are [here](https://magnum.travis-ci.com/UBCEECE315/Group12-Repo).-->
+You can skip a build by putting `[skip ci]` in the commit message.
