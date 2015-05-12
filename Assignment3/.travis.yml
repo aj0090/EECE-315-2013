@@ -10,7 +10,7 @@ install:
 
 # command to run tests
 script:
-  - cd Assignment3/Philosophers/
+  - cd Assignment3/Philosophers/basic
   - make
 
 after_success:
